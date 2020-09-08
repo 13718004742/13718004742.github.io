@@ -1,0 +1,141 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LG-OC类原理探索 | 张建的博客</title><meta name="description" content="NSObject的alloc底层调用流程内存对齐原理分析内存对齐的三大原则：  数据成员对齐规则：结构(struct)(或联合(union))的数据成员，第一个数据成员放在offset为0的地方，以后每个数据成员存储的起始位置要从该成员的大小或子成员大小的整数倍开始存储（比如int 为4字节，那么他的起始位置则为4*n） 结构体作为成员:如果⼀个结构⾥有某些结构体成员,则结构体成员要从其内部最⼤元"><meta name="keywords" content="LG-OC"><meta name="author" content="小J,13718004742@163.com"><meta name="copyright" content="小J"><meta name="format-detection" content="telephone=no"><link rel="shortcut icon" href="/13718004742.github.io/img/favicon.png"><link rel="canonical" href="https://www.bboyzj.cn/2020/09/07/LG-OC%E7%B1%BB%E5%8E%9F%E7%90%86%E6%8E%A2%E7%B4%A2/"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//fonts.googleapis.com" crossorigin="crossorigin"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><meta property="og:type" content="article"><meta property="og:title" content="LG-OC类原理探索"><meta property="og:url" content="https://www.bboyzj.cn/2020/09/07/LG-OC%E7%B1%BB%E5%8E%9F%E7%90%86%E6%8E%A2%E7%B4%A2/"><meta property="og:site_name" content="张建的博客"><meta property="og:description" content="NSObject的alloc底层调用流程内存对齐原理分析内存对齐的三大原则：  数据成员对齐规则：结构(struct)(或联合(union))的数据成员，第一个数据成员放在offset为0的地方，以后每个数据成员存储的起始位置要从该成员的大小或子成员大小的整数倍开始存储（比如int 为4字节，那么他的起始位置则为4*n） 结构体作为成员:如果⼀个结构⾥有某些结构体成员,则结构体成员要从其内部最⼤元"><meta property="og:image" content="https://user-images.githubusercontent.com/25925248/89222527-c8c9b980-d607-11ea-9d34-360cc1031a4a.jpeg"><meta property="article:published_time" content="2020-09-07T14:57:34.000Z"><meta property="article:modified_time" content="2020-09-08T14:00:51.497Z"><meta name="twitter:card" content="summary"><script>var activateDarkMode = function () {
+  document.documentElement.setAttribute('data-theme', 'dark')
+  if (document.querySelector('meta[name="theme-color"]') !== null) {
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#000')
+  }
+}
+var activateLightMode = function () {
+  document.documentElement.setAttribute('data-theme', 'light')
+  if (document.querySelector('meta[name="theme-color"]') !== null) {
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#fff')
+  }
+}
+
+var getCookies = function (name) {
+  const value = `; ${document.cookie}`
+  const parts = value.split(`; ${name}=`)
+  if (parts.length === 2) return parts.pop().split(';').shift()
+}
+
+var autoChangeMode = 'false'
+var t = getCookies('theme')
+if (autoChangeMode === '1') {
+  var isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+  var isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+  var isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+  var hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+  if (t === undefined) {
+    if (isLightMode) activateLightMode()
+    else if (isDarkMode) activateDarkMode()
+    else if (isNotSpecified || hasNoSupport) {
+      console.log('You specified no preference for a color scheme or your browser does not support it. I Schedule dark mode during night time.')
+      var now = new Date()
+      var hour = now.getHours()
+      var isNight = hour <= 6 || hour >= 18
+      isNight ? activateDarkMode() : activateLightMode()
+    }
+    window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+      if (Cookies.get('theme') === undefined) {
+        e.matches ? activateDarkMode() : activateLightMode()
+      }
+    })
+  } else if (t === 'light') activateLightMode()
+  else activateDarkMode()
+} else if (autoChangeMode === '2') {
+  now = new Date()
+  hour = now.getHours()
+  isNight = hour <= 6 || hour >= 18
+  if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+  else if (t === 'light') activateLightMode()
+  else activateDarkMode()
+} else {
+  if (t === 'dark') activateDarkMode()
+  else if (t === 'light') activateLightMode()
+}</script><link rel="stylesheet" href="/13718004742.github.io/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Titillium+Web&amp;display=swap"><script>var GLOBAL_CONFIG = { 
+  root: '/13718004742.github.io/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  bookmark: {
+    message_prev: '按',
+    message_next: '键将本页加入书签'
+  },
+  runtime_unit: '天',
+  runtime: false,
+  copyright: {"limitCount":50,"languages":{"author":"作者: 小J","link":"链接: ","source":"来源: 张建的博客","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  ClickShowText: undefined,
+  medium_zoom: false,
+  fancybox: true,
+  Snackbar: undefined,
+  justifiedGallery: {
+    js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+    css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+  },
+  baiduPush: false,
+  highlightCopy: true,
+  highlightLang: true,
+  isPhotoFigcaption: false,
+  islazyload: true,
+  isanchor: false    
+}</script><script id="config_change">var GLOBAL_CONFIG_SITE = { 
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isSidebar: true,
+  postUpdate: '2020-09-08 22:00:51'
+}</script><noscript><style>
+#nav {
+  opacity: 1
+}
+.justified-gallery img {
+  opacity: 1
+}
+</style></noscript><meta name="generator" content="Hexo 5.0.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" data-lazy-src="/13718004742.github.io/img/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/13718004742.github.io/archives/"><div class="headline">文章</div><div class="length_num">66</div></a></div></div><div class="mobile_data_item is-center">      <div class="mobile_data_link"><a href="/13718004742.github.io/tags/"><div class="headline">标签</div><div class="length_num">7</div></a></div></div><div class="mobile_data_item is-center">     <div class="mobile_data_link"><a href="/13718004742.github.io/categories/"><div class="headline">分类</div><div class="length_num">1</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/13718004742.github.io/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 菜单</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/13718004742.github.io/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/13718004742.github.io/movies/"><i class="fa-fw fas fa fa-film"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/link/"><i class="fa-fw fa fa-users"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/messageboard/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div></div></div></div><div id="body-wrap"><div id="web_bg" data-type="photo"></div><div id="sidebar"><i class="fas fa-arrow-right on" id="toggle-sidebar"></i><div class="sidebar-toc"><div class="sidebar-toc__title">目录</div><div class="sidebar-toc__progress"><span class="progress-notice">你已经读了</span><span class="progress-num">0</span><span class="progress-percentage">%</span><div class="sidebar-toc__progress-bar">     </div></div><div class="sidebar-toc__content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#NSObject%E7%9A%84alloc%E5%BA%95%E5%B1%82%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B"><span class="toc-number">1.</span> <span class="toc-text">NSObject的alloc底层调用流程</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%86%85%E5%AD%98%E5%AF%B9%E9%BD%90%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90"><span class="toc-number">2.</span> <span class="toc-text">内存对齐原理分析</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%B9%E8%B1%A1%E5%B1%9E%E6%80%A7%E5%86%85%E5%AD%98%E5%AF%B9%E9%BD%90"><span class="toc-number">2.1.</span> <span class="toc-text">对象属性内存对齐</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%93%E6%9E%84%E4%BD%93%E5%86%85%E5%AD%98%E5%AF%B9%E9%BD%90"><span class="toc-number">2.2.</span> <span class="toc-text">结构体内存对齐</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AF%B9%E8%B1%A1%E5%AE%9E%E9%99%85%E9%9C%80%E8%A6%81%E7%9A%84%E5%A4%A7%E5%B0%8F%E4%B8%8E%E7%B3%BB%E7%BB%9F%E5%86%85%E5%AD%98%E7%9C%9F%E6%AD%A3%E5%BC%80%E8%BE%9F%E7%9A%84%E5%A4%A7%E5%B0%8F%E5%88%86%E6%9E%90"><span class="toc-number">3.</span> <span class="toc-text">对象实际需要的大小与系统内存真正开辟的大小分析</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#malloc%E6%BA%90%E7%A0%81%E6%80%9D%E8%B7%AF%E5%88%86%E6%9E%90"><span class="toc-number">4.</span> <span class="toc-text">malloc源码思路分析</span></a></li></ol></div></div></div><header class="post-bg" id="page-header" style="background-image: url(https://user-images.githubusercontent.com/25925248/89222527-c8c9b980-d607-11ea-9d34-360cc1031a4a.jpeg)"><nav id="nav"><span class="pull-left" id="blog_name"><a class="blog_title" id="site-name" href="/13718004742.github.io/">张建的博客</a></span><span class="pull-right menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/13718004742.github.io/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 菜单</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/13718004742.github.io/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/13718004742.github.io/movies/"><i class="fa-fw fas fa fa-film"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/link/"><i class="fa-fw fa fa-users"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/messageboard/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div></div><span class="toggle-menu close"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></span></span></nav><div id="post-info"><div id="post-title"><div class="posttitle">LG-OC类原理探索</div></div><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-09-07T14:57:34.000Z" title="发表于 2020-09-07 22:57:34">2020-09-07</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2020-09-08T14:00:51.497Z" title="更新于 2020-09-08 22:00:51">2020-09-08</time></span></div><div class="meta-secondline"> <span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">1.1k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>4分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout_post" id="content-inner"><article id="post"><div class="post-content" id="article-container"><h1 id="NSObject的alloc底层调用流程"><a href="#NSObject的alloc底层调用流程" class="headerlink" title="NSObject的alloc底层调用流程"></a>NSObject的alloc底层调用流程</h1><h1 id="内存对齐原理分析"><a href="#内存对齐原理分析" class="headerlink" title="内存对齐原理分析"></a>内存对齐原理分析</h1><p><strong>内存对齐的三大原则：</strong></p>
+<ul>
+<li>数据成员对齐规则：结构(struct)(或联合(union))的数据成员，第一个数据成员放在offset为0的地方，以后每个数据成员存储的起始位置要从该成员的大小或子成员大小的整数倍开始存储（比如int 为4字节，那么他的起始位置则为4*n）</li>
+<li>结构体作为成员:如果⼀个结构⾥有某些结构体成员,则结构体成员要从其内部最⼤元素⼤⼩的整数倍地址开始存储.(struct a⾥存有struct b,b⾥有char,int ,double等元素,那b应该从8的整数倍开始存储.)</li>
+<li>结构体总体大小，必须是其内部最大成员的整数倍，不足要补齐</li>
+</ul>
+<p><strong>数据类型所占字节</strong><br><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/92480517-94a17400-f217-11ea-9dc4-8b27214158a2.png"></p>
+<h2 id="对象属性内存对齐"><a href="#对象属性内存对齐" class="headerlink" title="对象属性内存对齐"></a>对象属性内存对齐</h2><p>1.首先通过一个类的内存段来分析<br><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/92477729-af71e980-f213-11ea-8ab4-4e3438dca409.png"></p>
+<p>2.然后我们下断点，分析一下对象的内存情况<br><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/92478059-31faa900-f214-11ea-9936-65f3dfb689a0.png"></p>
+<ul>
+<li>po p：查看当前的对象信息&lt;ZJPerson: 0x60000072f870&gt;<ul>
+<li>ZJPerson为当前的对象，0x60000072f870为当前对象的内存地址</li>
+</ul>
+</li>
+<li>iOS为小端模式,内存要倒着读，即0x0000 0001 0950 2730,不足16位要补0，而0x0000 000109502730是指针，指向内存的首地址</li>
+<li>x p：意思是查看这个地址的内存情况，即内存段</li>
+<li>由于小端模式不好读取，所以我们用一个命令自动帮我们整理好x/6gx等等<ul>
+<li>x/6xg p：意思就是按照16进制,以6整段打印当前p对象</li>
+</ul>
+</li>
+<li>我们发现OC为我们做了一些优化,我们发现0x0000001200006261这个内存段存储了age,char1,char2,三个属性<ul>
+<li>我们po 0x00000012 打印30,也就是我们的age属性值</li>
+<li>po 0x61 0x62 打印的分别为97 98 也就是我们a和b对应的ASCII码</li>
+</ul>
+</li>
+</ul>
+<p>3.扩展<br>1)为什么age，char1和char2放在了一个内存地址？<br>因为oc做了内存对齐优化，节省了内存开销</p>
+<h2 id="结构体内存对齐"><a href="#结构体内存对齐" class="headerlink" title="结构体内存对齐"></a>结构体内存对齐</h2><p>由于对象的内存对齐来自结构体，因此接下来我们分析一下机构体是如何内存对齐的：<br>1.首先通过三个结构体来分析一下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 普通结构体</span><br><span class="line">struct ZJStruct1 &#123;</span><br><span class="line">    double a;   &#x2F;&#x2F; 占8个字节 起始位置(0-7)</span><br><span class="line">    char b;     &#x2F;&#x2F; 占1个字节 8是1的整数倍[8 1] 起始位置(8)</span><br><span class="line">    int c;      &#x2F;&#x2F; 占4个字节 9不是4的整数倍，往下找[9 4] 9 10 11 起始位置(12 13 14 15)</span><br><span class="line">    short d;    &#x2F;&#x2F; 占2个字节 16是2的整数倍[16 2] 起始位置(16 17)</span><br><span class="line">&#125;struct1;</span><br><span class="line">&#x2F;&#x2F; 内部需要的大小为: 17个字节</span><br><span class="line">&#x2F;&#x2F; 最大属性 : 8个字节</span><br><span class="line">&#x2F;&#x2F; 结构体整数倍: 最大成员的整数倍 8*3 &#x3D; 24个字节</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; 普通结构体</span><br><span class="line">struct ZJStruct2 &#123;</span><br><span class="line">    double a;   &#x2F;&#x2F;占8个字节 起始位置(0-7)</span><br><span class="line">    int b;      &#x2F;&#x2F;占4个字节 8是4的整数倍 起始位置(8 9 10 11)</span><br><span class="line">    char c;     &#x2F;&#x2F;占1个字节 12是1的倍数 起始位置(12)</span><br><span class="line">    short d;    &#x2F;&#x2F;占2个字节 13不是2的倍数，往下找 起始位置(14 15)</span><br><span class="line">&#125;struct2;</span><br><span class="line">&#x2F;&#x2F; 内部需要的大小为：15个字节</span><br><span class="line">&#x2F;&#x2F; 最大属性：8个字节</span><br><span class="line">&#x2F;&#x2F; 结构体整数倍：8*2 &#x3D; 16个字节</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; 嵌套结构体</span><br><span class="line">struct ZJStruct3 &#123;</span><br><span class="line">    double a; &#x2F;&#x2F;占8个字节 起始位置(0~7)</span><br><span class="line">    int b; &#x2F;&#x2F;占4个字节 8是4的整数倍[8 4] 起始位置(8 9 10 11)</span><br><span class="line">    struct ZJStruct1 s1; &#x2F;&#x2F;占17个字节 17不是内部最大成员double 8个字节的整数倍所以从24开始 起始位置(24~41)</span><br><span class="line">    char c; &#x2F;&#x2F;占1个字节 42是1的整数倍 起始位置(42)</span><br><span class="line">    short d; &#x2F;&#x2F;占2个字节 43不是2的倍数 起始位置(44 45)</span><br><span class="line">&#125;struct3;</span><br><span class="line">&#x2F;&#x2F; 内部需要的大小：45个字节</span><br><span class="line">&#x2F;&#x2F; 最大属性：8个字节</span><br><span class="line">&#x2F;&#x2F; 结构体整数倍：8*6 &#x3D; 48个字节</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>我们通过上面的分析来实际验证一下结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 打印结构体内存大小</span><br><span class="line">NSLog(@&quot;%lu-%lu-%lu&quot;,sizeof(struct1),sizeof(struct2),sizeof(struct3));</span><br><span class="line">        </span><br><span class="line">*******打印结果******</span><br><span class="line">2020-09-08 21:38:29.030348+0800 001-内存对齐原则[1610:127730] 24-16-48</span><br></pre></td></tr></table></figure>
+
+<p>结果显示我们分析的结果是正确的</p>
+<h1 id="对象实际需要的大小与系统内存真正开辟的大小分析"><a href="#对象实际需要的大小与系统内存真正开辟的大小分析" class="headerlink" title="对象实际需要的大小与系统内存真正开辟的大小分析"></a>对象实际需要的大小与系统内存真正开辟的大小分析</h1><h1 id="malloc源码思路分析"><a href="#malloc源码思路分析" class="headerlink" title="malloc源码思路分析"></a>malloc源码思路分析</h1></div><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:13718004742@163.com">小J</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://www.bboyzj.cn/2020/09/07/LG-OC%E7%B1%BB%E5%8E%9F%E7%90%86%E6%8E%A2%E7%B4%A2/">https://www.bboyzj.cn/2020/09/07/LG-OC%E7%B1%BB%E5%8E%9F%E7%90%86%E6%8E%A2%E7%B4%A2/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://www.bboyzj.cn" target="_blank">张建的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/13718004742.github.io/tags/LG-OC/">LG-OC</a></div><div class="post_share"><div class="social-share" data-image="https://user-images.githubusercontent.com/25925248/89222527-c8c9b980-d607-11ea-9d34-360cc1031a4a.jpeg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i> 打赏<div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat.jpg" target="_blank"><img class="post-qr-code-img" data-lazy-src="/13718004742.github.io/img/wechat.jpg" alt="wechat"/></a><div class="post-qr-code-desc">wechat</div></li><li class="reward-item"><a href="/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" data-lazy-src="/13718004742.github.io/img/alipay.jpg" alt="alipay"/></a><div class="post-qr-code-desc">alipay</div></li></ul></div></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/13718004742.github.io/2020/09/06/iOS-OC%E4%B9%8BLLDB%E6%8E%A2%E7%B4%A2/"><img class="next-cover" data-lazy-src="https://user-images.githubusercontent.com/25925248/89221104-4b04ae80-d605-11ea-88bc-368e5a27708f.png" onerror="onerror=null;src='/13718004742.github.io/img/404.jpg'"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">iOS-OC之LLDB探索</div></div></a></div></nav><div class="relatedPosts"><div class="relatedPosts_headline"><i class="fas fa-thumbs-up fa-fw"></i><span> 相关推荐</span></div><div class="relatedPosts_list"><div class="relatedPosts_item"><a href="/13718004742.github.io/2020/09/04/LG-OC之Objc4源码编译/" title="LG-OC之Objc4源码编译"><img class="relatedPosts_cover" data-lazy-src="https://user-images.githubusercontent.com/25925248/89219510-7cc84600-d602-11ea-9110-6b415b3c39bf.jpg"><div class="relatedPosts_main is-center"><div class="relatedPosts_date"><i class="far fa-calendar-alt fa-fw"></i> 2020-09-04</div><div class="relatedPosts_title">LG-OC之Objc4源码编译</div></div></a></div><div class="relatedPosts_item"><a href="/13718004742.github.io/2020/09/05/LG-OC之dyld探索/" title="LG-OC之dyld探索"><img class="relatedPosts_cover" data-lazy-src="https://user-images.githubusercontent.com/25925248/89222564-d717d580-d607-11ea-9f09-74358da90718.jpg"><div class="relatedPosts_main is-center"><div class="relatedPosts_date"><i class="far fa-calendar-alt fa-fw"></i> 2020-09-05</div><div class="relatedPosts_title">LG-OC之dyld探索</div></div></a></div><div class="relatedPosts_item"><a href="/13718004742.github.io/2020/09/05/LG-OC之NSLog探索/" title="LG-OC之NSLog探索"><img class="relatedPosts_cover" data-lazy-src="https://user-images.githubusercontent.com/25925248/89220723-ad10e400-d604-11ea-8f8d-282831301dde.png"><div class="relatedPosts_main is-center"><div class="relatedPosts_date"><i class="far fa-calendar-alt fa-fw"></i> 2020-09-05</div><div class="relatedPosts_title">LG-OC之NSLog探索</div></div></a></div><div class="relatedPosts_item"><a href="/13718004742.github.io/2020/09/05/LG-OC之p、-p和-p的区别探索/" title="LG-OC之p、*p和&p的区别探索"><img class="relatedPosts_cover" data-lazy-src="https://user-images.githubusercontent.com/25925248/89294514-33bfd280-d692-11ea-9151-7808205ed301.jpg"><div class="relatedPosts_main is-center"><div class="relatedPosts_date"><i class="far fa-calendar-alt fa-fw"></i> 2020-09-05</div><div class="relatedPosts_title">LG-OC之p、*p和&p的区别探索</div></div></a></div><div class="relatedPosts_item"><a href="/13718004742.github.io/2020/09/04/LG-OC对象探索/" title="LG-OC对象探索"><img class="relatedPosts_cover" data-lazy-src="https://user-images.githubusercontent.com/25925248/89222549-d121f480-d607-11ea-88ab-8c12dc642d0a.jpg"><div class="relatedPosts_main is-center"><div class="relatedPosts_date"><i class="far fa-calendar-alt fa-fw"></i> 2020-09-04</div><div class="relatedPosts_title">LG-OC对象探索</div></div></a></div></div></div></article></main><footer id="footer" style="background-image: url(https://user-images.githubusercontent.com/25925248/89222527-c8c9b980-d607-11ea-9d34-360cc1031a4a.jpeg)" data-type="photo"><div id="footer-wrap"><div class="copyright">&copy;2020 By 小J</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text"><a target="_blank" rel="noopener" href="http://www.bboyzj.top/">Hi, welcome to my blog!</a></div></div></footer></div><section id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="font_plus" type="button" title="放大字体"><i class="fas fa-plus"></i></button><button id="font_minus" type="button" title="缩小字体"><i class="fas fa-minus"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></section><div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/13718004742.github.io/js/utils.js"></script><script src="/13718004742.github.io/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module" defer></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js" async></script><script>var endLoading = function () {
+  document.body.style.overflow = 'auto';
+  document.getElementById('loading-box').classList.add("loaded")
+}
+window.addEventListener('load',endLoading)</script><div class="js-pjax"><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><script src="/13718004742.github.io/js/third-party/activate-power-mode.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = true;
+document.body.addEventListener('input', POWERMODE);
+</script><script src="/13718004742.github.io/js/third-party/click_heart.js" async="async"></script></div></body></html>
