@@ -1,0 +1,334 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OC底层原理11：类 &amp; isa 底层面试题分析 | 张建的博客</title><meta name="description" content="本文的面试题主要涉及 isa走位 &amp; 继承关系 &amp; 类结构 相关的面试题以及针对面试题的分析 #【面试题】类存在几份？由于 类的信息 在内存中永远 只存在一份，所以 类对象只有一份 【百度面试题】objc_object 与 对象的关系 所有的 对象 都是以 objc_object 为模板 继承 过来的 所有的 对象 都是 来自NSObject(来自于OC端)，但是真正到底层是一个"><meta name="keywords" content="OC底层原理探索篇"><meta name="author" content="小J,13718004742@163.com"><meta name="copyright" content="小J"><meta name="format-detection" content="telephone=no"><link rel="shortcut icon" href="/13718004742.github.io/img/favicon.png"><link rel="canonical" href="https://www.bboyzj.cn/2020/09/16/OC%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8611%EF%BC%9A%E7%B1%BB%20&amp;%20isa%20%E5%BA%95%E5%B1%82%E9%9D%A2%E8%AF%95%E9%A2%98%E5%88%86%E6%9E%90/"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//fonts.googleapis.com" crossorigin="crossorigin"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><meta property="og:type" content="article"><meta property="og:title" content="OC底层原理11：类 &amp; isa 底层面试题分析"><meta property="og:url" content="https://www.bboyzj.cn/2020/09/16/OC%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8611%EF%BC%9A%E7%B1%BB%20&amp;%20isa%20%E5%BA%95%E5%B1%82%E9%9D%A2%E8%AF%95%E9%A2%98%E5%88%86%E6%9E%90/"><meta property="og:site_name" content="张建的博客"><meta property="og:description" content="本文的面试题主要涉及 isa走位 &amp; 继承关系 &amp; 类结构 相关的面试题以及针对面试题的分析 #【面试题】类存在几份？由于 类的信息 在内存中永远 只存在一份，所以 类对象只有一份 【百度面试题】objc_object 与 对象的关系 所有的 对象 都是以 objc_object 为模板 继承 过来的 所有的 对象 都是 来自NSObject(来自于OC端)，但是真正到底层是一个"><meta property="og:image" content="https://user-images.githubusercontent.com/25925248/89222527-c8c9b980-d607-11ea-9d34-360cc1031a4a.jpeg"><meta property="article:published_time" content="2020-09-16T15:37:09.000Z"><meta property="article:modified_time" content="2020-10-17T04:05:46.263Z"><meta name="twitter:card" content="summary"><script>var activateDarkMode = function () {
+  document.documentElement.setAttribute('data-theme', 'dark')
+  if (document.querySelector('meta[name="theme-color"]') !== null) {
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#000')
+  }
+}
+var activateLightMode = function () {
+  document.documentElement.setAttribute('data-theme', 'light')
+  if (document.querySelector('meta[name="theme-color"]') !== null) {
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#fff')
+  }
+}
+
+var getCookies = function (name) {
+  const value = `; ${document.cookie}`
+  const parts = value.split(`; ${name}=`)
+  if (parts.length === 2) return parts.pop().split(';').shift()
+}
+
+var autoChangeMode = 'false'
+var t = getCookies('theme')
+if (autoChangeMode === '1') {
+  var isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+  var isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+  var isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+  var hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+  if (t === undefined) {
+    if (isLightMode) activateLightMode()
+    else if (isDarkMode) activateDarkMode()
+    else if (isNotSpecified || hasNoSupport) {
+      console.log('You specified no preference for a color scheme or your browser does not support it. I Schedule dark mode during night time.')
+      var now = new Date()
+      var hour = now.getHours()
+      var isNight = hour <= 6 || hour >= 18
+      isNight ? activateDarkMode() : activateLightMode()
+    }
+    window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+      if (Cookies.get('theme') === undefined) {
+        e.matches ? activateDarkMode() : activateLightMode()
+      }
+    })
+  } else if (t === 'light') activateLightMode()
+  else activateDarkMode()
+} else if (autoChangeMode === '2') {
+  now = new Date()
+  hour = now.getHours()
+  isNight = hour <= 6 || hour >= 18
+  if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+  else if (t === 'light') activateLightMode()
+  else activateDarkMode()
+} else {
+  if (t === 'dark') activateDarkMode()
+  else if (t === 'light') activateLightMode()
+}</script><link rel="stylesheet" href="/13718004742.github.io/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Titillium+Web&amp;display=swap"><script>var GLOBAL_CONFIG = { 
+  root: '/13718004742.github.io/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  bookmark: {
+    message_prev: '按',
+    message_next: '键将本页加入书签'
+  },
+  runtime_unit: '天',
+  runtime: false,
+  copyright: {"limitCount":50,"languages":{"author":"作者: 小J","link":"链接: ","source":"来源: 张建的博客","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  ClickShowText: undefined,
+  medium_zoom: false,
+  fancybox: true,
+  Snackbar: undefined,
+  justifiedGallery: {
+    js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+    css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+  },
+  baiduPush: false,
+  highlightCopy: true,
+  highlightLang: true,
+  isPhotoFigcaption: false,
+  islazyload: true,
+  isanchor: false    
+}</script><script id="config_change">var GLOBAL_CONFIG_SITE = { 
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isSidebar: true,
+  postUpdate: '2020-10-17 12:05:46'
+}</script><noscript><style>
+#nav {
+  opacity: 1
+}
+.justified-gallery img {
+  opacity: 1
+}
+</style></noscript><meta name="generator" content="Hexo 5.0.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" data-lazy-src="/13718004742.github.io/img/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/13718004742.github.io/archives/"><div class="headline">文章</div><div class="length_num">92</div></a></div></div><div class="mobile_data_item is-center">      <div class="mobile_data_link"><a href="/13718004742.github.io/tags/"><div class="headline">标签</div><div class="length_num">14</div></a></div></div><div class="mobile_data_item is-center">     <div class="mobile_data_link"><a href="/13718004742.github.io/categories/"><div class="headline">分类</div><div class="length_num">6</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/13718004742.github.io/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 菜单</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/13718004742.github.io/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/13718004742.github.io/movies/"><i class="fa-fw fas fa fa-film"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/link/"><i class="fa-fw fa fa-users"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/messageboard/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div></div></div></div><div id="body-wrap"><div id="web_bg" data-type="photo"></div><div id="sidebar"><i class="fas fa-arrow-right on" id="toggle-sidebar"></i><div class="sidebar-toc"><div class="sidebar-toc__title">目录</div><div class="sidebar-toc__progress"><span class="progress-notice">你已经读了</span><span class="progress-num">0</span><span class="progress-percentage">%</span><div class="sidebar-toc__progress-bar">     </div></div><div class="sidebar-toc__content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E3%80%90%E7%99%BE%E5%BA%A6%E9%9D%A2%E8%AF%95%E9%A2%98%E3%80%91objc-object-%E4%B8%8E-%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">1.</span> <span class="toc-text">【百度面试题】objc_object 与 对象的关系</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E3%80%90%E9%9D%A2%E8%AF%95%E9%A2%98%E3%80%91%E4%BB%80%E4%B9%88%E6%98%AF-%E5%B1%9E%E6%80%A7-amp-%E6%88%90%E5%91%98%E5%8F%98%E9%87%8F-amp-%E5%AE%9E%E4%BE%8B%E5%8F%98%E9%87%8F-%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">【面试题】什么是 属性 &amp; 成员变量 &amp; 实例变量 ？</span></a></li></ol></div></div></div><header class="post-bg" id="page-header" style="background-image: url(https://user-images.githubusercontent.com/25925248/89222527-c8c9b980-d607-11ea-9d34-360cc1031a4a.jpeg)"><nav id="nav"><span class="pull-left" id="blog_name"><a class="blog_title" id="site-name" href="/13718004742.github.io/">张建的博客</a></span><span class="pull-right menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/13718004742.github.io/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 菜单</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/13718004742.github.io/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/13718004742.github.io/movies/"><i class="fa-fw fas fa fa-film"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/link/"><i class="fa-fw fa fa-users"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/messageboard/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div></div><span class="toggle-menu close"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></span></span></nav><div id="post-info"><div id="post-title"><div class="posttitle">OC底层原理11：类 &amp; isa 底层面试题分析</div></div><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-09-16T15:37:09.000Z" title="发表于 2020-09-16 23:37:09">2020-09-16</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2020-10-17T04:05:46.263Z" title="更新于 2020-10-17 12:05:46">2020-10-17</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/13718004742.github.io/categories/iOS-OC/">iOS-OC</a></span></div><div class="meta-secondline"> <span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">3k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>11分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout_post" id="content-inner"><article id="post"><div class="post-content" id="article-container"><p>本文的面试题主要涉及 <code>isa走位 &amp; 继承关系 &amp; 类结构 </code>相关的面试题以及针对面试题的分析</p>
+<p>#【面试题】类存在几份？<br>由于 <code>类的信息</code> 在内存中永远 <code>只存在一份</code>，所以 <code>类对象只有一份</code></p>
+<h1 id="【百度面试题】objc-object-与-对象的关系"><a href="#【百度面试题】objc-object-与-对象的关系" class="headerlink" title="【百度面试题】objc_object 与 对象的关系"></a>【百度面试题】objc_object 与 对象的关系</h1><ul>
+<li>所有的 <code>对象</code> 都是以 <code>objc_object</code> 为模板 <code>继承</code> 过来的</li>
+<li>所有的 <code>对象</code> 都是 <code>来自NSObject(来自于OC端)</code>，但是真正到<code>底层</code>是一个 <code>objc_object（C/c++）</code> 结构体 <code>类型的</code></li>
+</ul>
+<p>【总结】：<code>objc_object</code> 与 <code>对象</code> 的关系是 <code>继承</code> 关系</p>
+<h1 id="【面试题】什么是-属性-amp-成员变量-amp-实例变量-？"><a href="#【面试题】什么是-属性-amp-成员变量-amp-实例变量-？" class="headerlink" title="【面试题】什么是 属性 &amp; 成员变量 &amp; 实例变量 ？"></a>【面试题】什么是 属性 &amp; 成员变量 &amp; 实例变量 ？</h1><ul>
+<li><p><code>属性(property)</code>：在 OC 中是通过 <code>@property</code>开头 定义，且是 <code>带下划线成员变量 + setter + getter方法</code>的变量</p>
+</li>
+<li><p><code>成员变量(ivar)</code>：在 OC 的类中 {} 中定义的，且 <code>没有下划线的变量</code></p>
+</li>
+<li><p><code>实例变量</code>：通过当前对象类型，<code>具备实例化的变量</code>，是一种 <code>特殊的成员变量</code>，例如 NSObject、UILabel、UIButton等</p>
+</li>
+</ul>
+<p>#【面试题】元类 中为什么会有 类对象 的 类方法？</p>
+<p>在上一章 <a href="">iOS-OC底层原理10：类 &amp; 类结构分析</a> 中，我们知道了 <code>实例方法存储在类中</code>，<code>类方法存储在元类中</code></p>
+<p>为了探索我们的面试题现象，定义了以下几个方法，来探索方法的归属问题</p>
+<ul>
+<li>在ZJPerson中定义一个实例方法和一个类方法，并实现</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">@interface ZJPerson : NSObject</span><br><span class="line">- (void)sayHello;</span><br><span class="line">+ (void)sayHappy;</span><br><span class="line">@end</span><br><span class="line"></span><br><span class="line">@implementation ZJPerson</span><br><span class="line">- (void)sayHello&#123;</span><br><span class="line">    NSLog(@&quot;ZJPerson say : Hello!!!&quot;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">+ (void)sayHappy&#123;</span><br><span class="line">    NSLog(@&quot;ZJPerson say : Happy!!!&quot;);</span><br><span class="line">&#125;</span><br><span class="line">@end</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>在 main 主函数，调用自定义的方法</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">int main(int argc, const char * argv[]) &#123;</span><br><span class="line">    @autoreleasepool &#123;</span><br><span class="line">        ZJPerson * p &#x3D; [ZJPerson alloc];</span><br><span class="line">        Class pClass &#x3D; object_getClass(p);</span><br><span class="line">        &#x2F;&#x2F; 获取类的方法</span><br><span class="line">        zjObjc_copyMethodList(pClass);</span><br><span class="line">        &#x2F;&#x2F; 获取类和元类的实例方法</span><br><span class="line">        zjInstanceMethod_classToMetaclass(pClass);</span><br><span class="line">        &#x2F;&#x2F; 获取类和元类的类方法</span><br><span class="line">        zjClassMethod_classToMetaclass(pClass);</span><br><span class="line">        &#x2F;&#x2F; 获取类和元类的方法实现</span><br><span class="line">        zjIMP_classToMetaclass(pClass);</span><br><span class="line">        NSLog(@&quot;Hello, World!&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>zjObjc_copyMethodList：用于获取 <code>类的方法</code></li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 获取类的方法列表</span><br><span class="line">void zjObjc_copyMethodList(Class pClass)&#123;</span><br><span class="line">    unsigned int count &#x3D; 0;</span><br><span class="line">    Method *methods &#x3D; class_copyMethodList(pClass, &amp;count);</span><br><span class="line">    for (unsigned int i&#x3D;0; i &lt; count; i++) &#123;</span><br><span class="line">        Method const method &#x3D; methods[i];</span><br><span class="line">        &#x2F;&#x2F;获取方法名</span><br><span class="line">        NSString *key &#x3D; NSStringFromSelector(method_getName(method));</span><br><span class="line">        </span><br><span class="line">        ZJLog(@&quot;Method, name: %@&quot;, key);</span><br><span class="line">    &#125;</span><br><span class="line">    free(methods);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>查看一下打印结果:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Method, name: sayHello</span><br></pre></td></tr></table></figure>
+
+<p>下面我们来分析一下打印结果:</p>
+<p>【zjObjc_copyMethodList函数】</p>
+<p>这个函数的主要作用是打印 <code>类</code> 中存在的 <code>方法</code>，由前面所知，<code>实例方法</code> 存储在 <code>类中</code>，因此打印结果只有 <code>Method, name: sayHello</code></p>
+<ul>
+<li>zjInstanceMethod_classToMetaclass：用于获取 <code>类和元类</code> 的 <code>实例方法</code> </li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">void zjInstanceMethod_classToMetaclass(Class pClass)&#123;</span><br><span class="line">    </span><br><span class="line">    const char *className &#x3D; class_getName(pClass);</span><br><span class="line">    Class metaClass &#x3D; objc_getMetaClass(className);</span><br><span class="line">    </span><br><span class="line">    Method method1 &#x3D; class_getInstanceMethod(pClass, @selector(sayHello));</span><br><span class="line">    Method method2 &#x3D; class_getInstanceMethod(metaClass, @selector(sayHello));</span><br><span class="line"></span><br><span class="line">    Method method3 &#x3D; class_getInstanceMethod(pClass, @selector(sayHappy));</span><br><span class="line">    Method method4 &#x3D; class_getInstanceMethod(metaClass, @selector(sayHappy));</span><br><span class="line">    </span><br><span class="line">    ZJLog(@&quot;%s - %p-%p-%p-%p&quot;,__func__,method1,method2,method3,method4);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>查看一下打印结果:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">zjInstanceMethod_classToMetaclass - 0x100003100-0x0-0x0-0x100003098</span><br></pre></td></tr></table></figure>
+
+<p>下面我们来分析一下打印结果:</p>
+<p>【zjInstanceMethod_classToMetaclass函数】:用于获取 <code>类和元类</code> 的 <code>类方法</code></p>
+<p>在分析前先了解一下函数 <code>class_getInstanceMethod</code> :作用是获取实例方法，根据官方文档的解释:</p>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/95673850-da6aa700-0bde-11eb-93b1-c67694683310.png"></p>
+<p>其大致含义就是：<code>如果在传入的类或者类的父类中没有找到指定的实例方法，则返回NULL</code></p>
+<p>从上面的代码可知传入的 <code>pClass</code> 是 <code>ZJPerson 类</code>，metaClass 是 <code>ZJPerson元类</code>,函数中4个打印结果分别是：</p>
+<ul>
+<li><p><code>method1</code>的地址：<code>0x100003100</code><br>  传入的 <code>pClass</code> 是 <code>ZJPerson</code>，查找的方法是<code>sayHello实例方法</code>，由于ZJPerson中有该方法，所以返回的地址是 <code>0x100003100</code></p>
+<ul>
+<li><p><code>method2</code>的地址：<code>0x0</code><br>传入的 <code>metaClass</code> 是 <code>ZJPerson元类</code>，查找的方法是<code>sayHello实例方法</code>，由于ZJPerson中没有该方法，所以返回的地址是 <code>0x0</code></p>
+</li>
+<li><p><code>method3</code>的地址：<code>0x0</code><br>传入的 <code>pClass</code> 是 <code>ZJPerson</code>，查找的方法是<code>sayHappy实例方法</code>，由于ZJPerson中没有该方法，所以返回的地址是 <code>0x0</code></p>
+</li>
+<li><p><code>method4</code>的地址：<code>0x100003098</code><br>传入的 <code>metaClass</code> 是 <code>ZJPerson元类</code>，查找的方法是<code>sayHappy实例方法</code>，由于类ZJPerson中<code>类方法sayHappys</code>是以 <code>实例方法</code> 存储在 <code>元类中</code>的，因此<code>元类ZJPerson</code> 中有该方法，所以返回的地址是 <code>0x100003098</code></p>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><code>zjClassMethod_classToMetaclass</code>函数：获取类或类的父类中的类方法</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 类和元类-类方法</span><br><span class="line">void zjClassMethod_classToMetaclass(Class pClass)&#123;</span><br><span class="line">    </span><br><span class="line">    const char *className &#x3D; class_getName(pClass);</span><br><span class="line">    Class metaClass &#x3D; objc_getMetaClass(className);</span><br><span class="line">    </span><br><span class="line">    Method method1 &#x3D; class_getClassMethod(pClass, @selector(sayHello));</span><br><span class="line">    Method method2 &#x3D; class_getClassMethod(metaClass, @selector(sayHello));</span><br><span class="line"></span><br><span class="line">    Method method3 &#x3D; class_getClassMethod(pClass, @selector(sayHappy));</span><br><span class="line">    &#x2F;&#x2F; 元类 为什么有 sayHappy 类方法 0 1</span><br><span class="line">    &#x2F;&#x2F;</span><br><span class="line">    Method method4 &#x3D; class_getClassMethod(metaClass, @selector(sayHappy));</span><br><span class="line">    </span><br><span class="line">    ZJLog(@&quot;%s-%p-%p-%p-%p&quot;,__func__,method1,method2,method3,method4);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>查看一下打印结果:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">zjClassMethod_classToMetaclass-0x0-0x0-0x100003098-0x100003098</span><br></pre></td></tr></table></figure>
+
+<p>下面我们来分析一下打印结果:</p>
+<p><code>class_getClassMethod</code>：用于获取 <code>类或类的父类</code> 的 <code>类方法</code>，根据官方文档的解释:</p>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/95673759-3f71cd00-0bde-11eb-9f7c-2d74ade4a3d0.png"></p>
+<p>其大致含义就是：<code>如果在传入的类或者类的父类中没有找到指定的类方法，则返回NULL</code></p>
+<p>从上面的代码可知传入的 <code>pClass</code> 是 <code>ZJPerson 类</code>，<code>metaClass</code> 是 <code>ZJPerson元类</code>,函数中4个打印结果分别是：</p>
+<ul>
+<li><p><code>method1</code>的地址：<code>0x0</code><br>传入的 <code>pClass</code> 是 <code>ZJPerson</code>，查找的方法是<code>sayHello类方法</code>，由于ZJPerson中没有该方法，所以返回的地址是 <code>0x0</code></p>
+</li>
+<li><p><code>method2</code>的地址：<code>0x0</code><br>传入的 <code>metaClass</code> 是 <code>ZJPerson元类</code>，查找的方法是<code>sayHello类方法</code>，由于 <code>ZJPerson元类</code>中没有该方法，所以返回的地址是 <code>0x0</code></p>
+</li>
+<li><p><code>method3</code>的地址：<code>0x100003098</code><br>传入的 <code>pClass</code> 是 <code>ZJPerson</code>，查找的方法是<code>sayHappy类方法</code>，由于ZJPerson中有该方法，所以返回的地址是 <code>0x100003098</code></p>
+</li>
+<li><p><code>method4</code>的地址：<code>0x100003098</code><br>传入的 <code>metaClass</code> 是 <code>ZJPerson元类</code>，查找的方法是<code>sayHappy类方法</code>，由于类ZJPerson中<code>类方法sayHappys</code>是以 <code>实例方法</code> 存储在 <code>元类中</code>的，因此<code>元类ZJPerson</code> 中有该 <code>实例方法</code>，那么为什么会返回 <code>类方法sayHappy</code>的地址呢？</p>
+</li>
+</ul>
+<p>【问题】：<code>ZJPerson元类</code> 为什么会有 <code>类方法sayHappy</code>？</p>
+<p>我们查看一下源码:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;获取类方法</span><br><span class="line">Method class_getClassMethod(Class cls, SEL sel)</span><br><span class="line">&#123;</span><br><span class="line">    if (!cls  ||  !sel) return nil;</span><br><span class="line"></span><br><span class="line">    return class_getInstanceMethod(cls-&gt;getMeta(), sel);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">⬇️</span><br><span class="line">&#x2F;&#x2F;获取元类</span><br><span class="line"> &#x2F;&#x2F; NOT identical to this-&gt;ISA when this is a metaclass 判断是否是元类，是元类就直接返回，反之，继续找isa指向</span><br><span class="line">Class getMeta() &#123;</span><br><span class="line">    if (isMetaClass()) return (Class)this;</span><br><span class="line">    else return this-&gt;ISA();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>由源码可知：<code>class_getClassMethod</code>的实现是获取类的类方法，其本质就是 <code>获取元类的实例方法</code>，最终还是会走到 <code>class_getInstanceMethod</code>，但是在这里需要注意的一点是，在<code>getMeta</code>源码中，如果判断出<code>cls</code>是<code>元类</code>，那么就<code>不会</code>再继续往下<code>递归查找</code>，会直接返回<code>this</code>，其目的是为了<code>防止元类的无限递归查找</code></p>
+<p>【结论】<br>由源码可知：</p>
+<ul>
+<li>获取元类的类方法，本质是<code>获取元类的实例方</code></li>
+<li>方法method4：是会返回地址的</li>
+</ul>
+<ul>
+<li>zjIMP_classToMetaclass函数：用于获取类和元类中的方法实现</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">void zjIMP_classToMetaclass(Class pClass)&#123;</span><br><span class="line">    </span><br><span class="line">    const char *className &#x3D; class_getName(pClass);</span><br><span class="line">    Class metaClass &#x3D; objc_getMetaClass(className);</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; - (void)sayHello;</span><br><span class="line">    &#x2F;&#x2F; + (void)sayHappy;</span><br><span class="line">    IMP imp1 &#x3D; class_getMethodImplementation(pClass, @selector(sayHello));</span><br><span class="line">    IMP imp2 &#x3D; class_getMethodImplementation(metaClass, @selector(sayHello));</span><br><span class="line"></span><br><span class="line">    IMP imp3 &#x3D; class_getMethodImplementation(pClass, @selector(sayHappy));</span><br><span class="line">    IMP imp4 &#x3D; class_getMethodImplementation(metaClass, @selector(sayHappy));</span><br><span class="line"></span><br><span class="line">    NSLog(@&quot;%p-%p-%p-%p&quot;,imp1,imp2,imp3,imp4);</span><br><span class="line">    NSLog(@&quot;%s&quot;,__func__);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>查看一下打印结果:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">0x1000017c0-0x7fff72080580-0x7fff72080580-0x1000017f0</span><br></pre></td></tr></table></figure>
+
+<p>下面我们来分析一下打印结果:</p>
+<p><code>class_getMethodImplementation</code>：用于获取 <code>类或类的父类</code> 的 <code>方法实现</code>，根据官方文档的解释:</p>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/95673682-785d7200-0bdd-11eb-9d80-94b19d82a1c9.png"></p>
+<p>其大致含义就是：该函数在向类实例发送消息时会被调用，并返回一个指向<code>方法实现函数的指针</code>。这个函数会比<code>method_getImplementation(class_getInstanceMethod(cls, name))</code>更快。返回的函数指针可能是一个指向<code>runtime内部的函数</code>，而不一定是方法的实际实现。如果类实例无法响应<code>selector</code>，则返回的函数指针将是运行时<code>消息转发机制</code>的一部分</p>
+<p>下面我们也可以通过这个方法的源码来印证上面的这个说法，</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">IMP class_getMethodImplementation(Class cls, SEL sel)</span><br><span class="line">&#123;</span><br><span class="line">    IMP imp;</span><br><span class="line"></span><br><span class="line">    if (!cls  ||  !sel) return nil;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F;查找方法实现</span><br><span class="line">    imp &#x3D; lookUpImpOrNil(nil, sel, cls, LOOKUP_INITIALIZE | LOOKUP_RESOLVER);</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F;如果没有找到，则进行消息转发</span><br><span class="line">    if (!imp) &#123;</span><br><span class="line">        return _objc_msgForward;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    return imp;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从上面的代码可知传入的 <code>pClass</code> 是 <code>ZJPerson 类</code>，<code>metaClass</code> 是 <code>ZJPerson元类</code>,函数中4个打印结果分别是：</p>
+<ul>
+<li><p><code>imp1</code>的地址：<code>0x1000017c0</code><br>传入的 <code>pClass</code> 是 <code>ZJPerson</code>，查找的是<code>sayHello函数指针</code>，由于ZJPerson中有该函数指针，所以返回的地址是 <code>0x1000017c0</code></p>
+</li>
+<li><p><code>imp2</code>的地址：<code>0x7fff72080580</code><br>传入的 <code>metaClass</code> 是 <code>ZJPerson元类</code>，查找的方法是<code>sayHello类方法</code>，根据 <code>类方法存储在元类中</code> 可知，<code>sayHello</code>是一个实例方法，并不存储在元类中，也没有其任何实现，所以进行了<code>消息转发</code></p>
+</li>
+<li><p><code>imp3</code>的地址：<code>0x7fff72080580</code><br>传入的 <code>pClass</code> 是 <code>ZJPerson</code>，查找的方法是<code>sayHappy类方法</code>，<code>sayHappy</code>是一个类方法，并不存储在类中，也没有其任何实现，所以进行了<code>消息转发</code></p>
+</li>
+<li><p><code>imp4</code>的地址：<code>0x1000017f0</code><br>传入的 <code>metaClass</code> 是 <code>ZJPerson元类</code>，查找的方法是<code>sayHappy类方法</code>，根据 <code>类方法存储在元类中</code>，可以在元类中查找到sayHappy的具体实现，所以返回一个<code>imp函数指针的地址</code></p>
+</li>
+</ul>
+<p>【总结】</p>
+<ul>
+<li><code>class_getInstanceMethod</code>：获取<code>实例方法</code>，如果指定的 类或其父类 不包含带有指定选择器的实例方法，则为NULL</li>
+<li><code>class_getClassMethod</code>：获取<code>类方法</code>，如果指定的类或其父类不包含具有指定选择器的类方法，则为NULL。</li>
+<li><code>class_getMethodImplementation</code>：获取方法的具体实现，如果未查找到，则进行<code>消息转发</code></li>
+</ul>
+<p>#【面试题】iskindOfClass &amp; isMemberOfClass 的理解</p>
+<ul>
+<li><code>iskindOfClass &amp; isMemberOfClass</code> 类方法调用</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">BOOL re1 &#x3D; [(id)[NSObject class] isKindOfClass:[NSObject class]];       &#x2F;&#x2F;</span><br><span class="line">        BOOL re2 &#x3D; [(id)[NSObject class] isMemberOfClass:[NSObject class]];     &#x2F;&#x2F;</span><br><span class="line">        BOOL re3 &#x3D; [(id)[ZJPerson class] isKindOfClass:[ZJPerson class]];       &#x2F;&#x2F;</span><br><span class="line">        BOOL re4 &#x3D; [(id)[ZJPerson class] isMemberOfClass:[ZJPerson class]];     &#x2F;&#x2F;</span><br><span class="line">        NSLog(@&quot; re1 :%hhd\n re2 :%hhd\n re3 :%hhd\n re4 :%hhd\n&quot;,re1,re2,re3,re4);</span><br></pre></td></tr></table></figure>
+
+<p>查看打印结果:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">2020-09-16 23:45:31.732090+0800 KCObjc[41895:1261834]  re1 :1</span><br><span class="line"> re2 :0</span><br><span class="line"> re3 :0</span><br><span class="line"> re4 :0</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>iskindOfClass &amp; isMemberOfClass</code> 实例方法调用</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">BOOL re5 &#x3D; [(id)[NSObject alloc] isKindOfClass:[NSObject class]];       &#x2F;&#x2F;</span><br><span class="line">        BOOL re6 &#x3D; [(id)[NSObject alloc] isMemberOfClass:[NSObject class]];     &#x2F;&#x2F;</span><br><span class="line">        BOOL re7 &#x3D; [(id)[ZJPerson alloc] isKindOfClass:[ZJPerson class]];       &#x2F;&#x2F;</span><br><span class="line">        BOOL re8 &#x3D; [(id)[ZJPerson alloc] isMemberOfClass:[ZJPerson class]];     &#x2F;&#x2F;</span><br><span class="line">        NSLog(@&quot; re5 :%hhd\n re6 :%hhd\n re7 :%hhd\n re8 :%hhd\n&quot;,re5,re6,re7,re8);</span><br></pre></td></tr></table></figure>
+
+<p>查看打印结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">2020-09-16 23:45:31.733480+0800 KCObjc[41895:1261834]  re5 :1</span><br><span class="line"> re6 :1</span><br><span class="line"> re7 :1</span><br><span class="line"> re8 :1</span><br><span class="line">Program ended with exit code: 0</span><br></pre></td></tr></table></figure>
+
+<p>【问题】那么是为什么呢？接下来我们通过<code>objc4</code>源码来分析一下：</p>
+<ul>
+<li>要想分析源码，我们需要深入理解<code>isa</code>流程图，如下：</li>
+</ul>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/94944488-e930ca00-050b-11eb-80ca-e204a449909c.png"></p>
+<p><strong>注：NSObject类 和 NSObject根元类 不相等</strong></p>
+<ul>
+<li><p>接下来我们查一下<code>isKindOfClass</code>调用的源码:</p>
+<ul>
+<li><p>查看 <code>类</code> 调用的源码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">+ (BOOL)isKindOfClass:(Class)cls &#123;</span><br><span class="line">    for (Class tcls &#x3D; self-&gt;ISA(); tcls; tcls &#x3D; tcls-&gt;superclass) &#123;</span><br><span class="line">        if (tcls &#x3D;&#x3D; cls) return YES;</span><br><span class="line">    &#125;</span><br><span class="line">    return NO;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>查看 <code>实例对象</code> 调用的源码:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">- (BOOL)isKindOfClass:(Class)cls &#123;</span><br><span class="line">    for (Class tcls &#x3D; [self class]; tcls; tcls &#x3D; tcls-&gt;superclass) &#123;</span><br><span class="line">        if (tcls &#x3D;&#x3D; cls) return YES;</span><br><span class="line">    &#125;</span><br><span class="line">    return NO;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><p>我们在查看一下<code>isMemberOfClass</code>调用的源码：</p>
+<ul>
+<li><p>查看 <code>类</code> 调用的源码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">+ (BOOL)isMemberOfClass:(Class)cls &#123;</span><br><span class="line">    return self-&gt;ISA() &#x3D;&#x3D; cls;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>查看 <code>实例对象</code> 调用的源码:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">- (BOOL)isMemberOfClass:(Class)cls &#123;</span><br><span class="line">    return [self class] &#x3D;&#x3D; cls;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+</li>
+</ul>
+<p>【源码分析总结】</p>
+<ul>
+<li><p>isKindOfClass</p>
+<ul>
+<li>类方法：<code>元类（isa） --&gt; 根元类（父类） --&gt; 根类（父类） --&gt; nil（父类）</code> 与 <code>传入类的对比</code></li>
+<li>实例方法：<code>对象的类 --&gt; 父类 --&gt; 根类 --&gt; nil</code> 与 <code>传入类的对比</code></li>
+</ul>
+</li>
+<li><p>isMemberOfClass</p>
+<ul>
+<li>类方法： <code>类的元类</code> 与 <code>传入类</code> 对比</li>
+<li>实例方法：<code>对象的父类</code> 与 <code>传入类</code> 对比</li>
+</ul>
+</li>
+</ul>
+<p>由上面的源码我们知道了具体调用的源码，由此我们来具体分析为什么打印<code>1000 1111</code>这个结果:</p>
+<p>【类】</p>
+<ul>
+<li><code>[NSObject class] isKindOfClass:[NSObject class]]</code>内部调用分析图：</li>
+</ul>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/95671775-43e1ba00-0bcd-11eb-8697-64d59be5c414.png"></p>
+<p>由上面的分析图可知：打印结果为<code>1</code></p>
+<ul>
+<li><code>[NSObject class] isMemberOfClass:[NSObject class]</code>内部调用分析图：</li>
+</ul>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/95671830-b8b4f400-0bcd-11eb-8c87-1aa969615eb2.png"></p>
+<ul>
+<li><code>[ZJPerson class] isKindOfClass:[ZJPerson class]</code>内部调用分析图：</li>
+</ul>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/95671878-3d077700-0bce-11eb-904d-35fd090a71f5.png"></p>
+<ul>
+<li><code>[ZJPerson class] isMemberOfClass:[ZJPerson class]</code>内部调用分析图：</li>
+</ul>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/95671897-7fc94f00-0bce-11eb-8360-b07aca28d359.png"></p>
+<p>【实例对象】</p>
+<ul>
+<li><code>[NSObject alloc] isKindOfClass:[NSObject class]</code>内部调用分析图：</li>
+</ul>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/95671973-4e9d4e80-0bcf-11eb-9cc9-154398a78df7.png"></p>
+<ul>
+<li><code>[NSObject alloc] isMemberOfClass:[NSObject class]</code>内部调用分析图：</li>
+</ul>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/95672004-8906eb80-0bcf-11eb-980d-6440b23696d3.png"></p>
+<ul>
+<li><code>[ZJPerson alloc] isKindOfClass:[ZJPerson class]</code>内部调用分析图：</li>
+</ul>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/95672086-66290700-0bd0-11eb-8506-b6d6a914f54e.png"></p>
+<ul>
+<li><code>[ZJPerson alloc] isMemberOfClass:[ZJPerson class]</code>内部调用分析图：</li>
+</ul>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/95672141-e6e80300-0bd0-11eb-95e9-9bd820378a28.png"></p>
+</div><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:13718004742@163.com">小J</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://www.bboyzj.cn/2020/09/16/OC%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8611%EF%BC%9A%E7%B1%BB%20&amp;%20isa%20%E5%BA%95%E5%B1%82%E9%9D%A2%E8%AF%95%E9%A2%98%E5%88%86%E6%9E%90/">https://www.bboyzj.cn/2020/09/16/OC%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8611%EF%BC%9A%E7%B1%BB%20&amp;%20isa%20%E5%BA%95%E5%B1%82%E9%9D%A2%E8%AF%95%E9%A2%98%E5%88%86%E6%9E%90/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://www.bboyzj.cn" target="_blank">张建的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/13718004742.github.io/tags/OC%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86%E6%8E%A2%E7%B4%A2%E7%AF%87/">OC底层原理探索篇</a></div><div class="post_share"><div class="social-share" data-image="https://user-images.githubusercontent.com/25925248/89222527-c8c9b980-d607-11ea-9d34-360cc1031a4a.jpeg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i> 打赏<div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat.jpg" target="_blank"><img class="post-qr-code-img" data-lazy-src="/13718004742.github.io/img/wechat.jpg" alt="wechat"/></a><div class="post-qr-code-desc">wechat</div></li><li class="reward-item"><a href="/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" data-lazy-src="/13718004742.github.io/img/alipay.jpg" alt="alipay"/></a><div class="post-qr-code-desc">alipay</div></li></ul></div></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/13718004742.github.io/2020/09/17/Mac%EF%BC%9A%E4%BF%AE%E6%94%B9%E6%96%87%E4%BB%B6%E7%9A%84%E9%BB%98%E8%AE%A4%E6%89%93%E5%BC%80%E6%96%B9%E5%BC%8F/"><img class="prev-cover" data-lazy-src="https://user-images.githubusercontent.com/25925248/89220723-ad10e400-d604-11ea-8f8d-282831301dde.png" onerror="onerror=null;src='/13718004742.github.io/img/404.jpg'"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">Mac：修改文件的默认打开方式</div></div></a></div><div class="next-post pull-right"><a href="/13718004742.github.io/2020/09/12/OC%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8607%EF%BC%9Amalloc%E6%BA%90%E7%A0%81%E6%8E%A2%E7%B4%A2/"><img class="next-cover" data-lazy-src="https://user-images.githubusercontent.com/25925248/89219769-f829f780-d602-11ea-96a1-e38c6eb5ba22.jpg" onerror="onerror=null;src='/13718004742.github.io/img/404.jpg'"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">OC底层原理07：malloc源码探索</div></div></a></div></nav><div class="relatedPosts"><div class="relatedPosts_headline"><i class="fas fa-thumbs-up fa-fw"></i><span> 相关推荐</span></div><div class="relatedPosts_list"><div class="relatedPosts_item"><a href="/13718004742.github.io/2020/09/18/OC底层原理00：LLDB常用命令/" title="OC底层原理00：LLDB常用命令"><img class="relatedPosts_cover" data-lazy-src="https://user-images.githubusercontent.com/25925248/89294514-33bfd280-d692-11ea-9151-7808205ed301.jpg"><div class="relatedPosts_main is-center"><div class="relatedPosts_date"><i class="far fa-calendar-alt fa-fw"></i> 2020-09-18</div><div class="relatedPosts_title">OC底层原理00：LLDB常用命令</div></div></a></div><div class="relatedPosts_item"><a href="/13718004742.github.io/2020/09/12/OC底层原理01：查找源码有三种方式/" title="OC底层原理01:查找源码有三种方式"><img class="relatedPosts_cover" data-lazy-src="https://user-images.githubusercontent.com/25925248/89219510-7cc84600-d602-11ea-9110-6b415b3c39bf.jpg"><div class="relatedPosts_main is-center"><div class="relatedPosts_date"><i class="far fa-calendar-alt fa-fw"></i> 2020-09-12</div><div class="relatedPosts_title">OC底层原理01:查找源码有三种方式</div></div></a></div><div class="relatedPosts_item"><a href="/13718004742.github.io/2020/09/04/OC底层原理02：Objc4源码编译/" title="OC底层原理02：Objc4源码编译"><img class="relatedPosts_cover" data-lazy-src="https://user-images.githubusercontent.com/25925248/94631207-608f0f80-02fa-11eb-8863-fb55aab72824.jpg"><div class="relatedPosts_main is-center"><div class="relatedPosts_date"><i class="far fa-calendar-alt fa-fw"></i> 2020-09-04</div><div class="relatedPosts_title">OC底层原理02：Objc4源码编译</div></div></a></div><div class="relatedPosts_item"><a href="/13718004742.github.io/2020/09/12/OC底层原理03：alloc&init&new源码分析/" title="OC底层原理03：alloc&init&new探索"><img class="relatedPosts_cover" data-lazy-src="https://user-images.githubusercontent.com/25925248/89222564-d717d580-d607-11ea-9f09-74358da90718.jpg"><div class="relatedPosts_main is-center"><div class="relatedPosts_date"><i class="far fa-calendar-alt fa-fw"></i> 2020-09-12</div><div class="relatedPosts_title">OC底层原理03：alloc&init&new探索</div></div></a></div><div class="relatedPosts_item"><a href="/13718004742.github.io/2020/09/12/OC底层原理04：Optimization-Level-优化等级/" title="OC底层原理04：Optimization-Level-优化等级"><img class="relatedPosts_cover" data-lazy-src="https://user-images.githubusercontent.com/25925248/89219769-f829f780-d602-11ea-96a1-e38c6eb5ba22.jpg"><div class="relatedPosts_main is-center"><div class="relatedPosts_date"><i class="far fa-calendar-alt fa-fw"></i> 2020-09-12</div><div class="relatedPosts_title">OC底层原理04：Optimization-Level-优化等级</div></div></a></div><div class="relatedPosts_item"><a href="/13718004742.github.io/2020/09/12/OC底层原理05：objc-alloc探索/" title="OC底层原理05：objc_alloc探索"><img class="relatedPosts_cover" data-lazy-src="https://user-images.githubusercontent.com/25925248/89294514-33bfd280-d692-11ea-9151-7808205ed301.jpg"><div class="relatedPosts_main is-center"><div class="relatedPosts_date"><i class="far fa-calendar-alt fa-fw"></i> 2020-09-12</div><div class="relatedPosts_title">OC底层原理05：objc_alloc探索</div></div></a></div></div></div></article></main><footer id="footer" style="background-image: url(https://user-images.githubusercontent.com/25925248/89222527-c8c9b980-d607-11ea-9d34-360cc1031a4a.jpeg)" data-type="photo"><div id="footer-wrap"><div class="copyright">&copy;2020 By 小J</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text"><a target="_blank" rel="noopener" href="http://www.bboyzj.top/">Hi, welcome to my blog!</a></div></div></footer></div><section id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="font_plus" type="button" title="放大字体"><i class="fas fa-plus"></i></button><button id="font_minus" type="button" title="缩小字体"><i class="fas fa-minus"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></section><div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/13718004742.github.io/js/utils.js"></script><script src="/13718004742.github.io/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module" defer></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js" async></script><script>var endLoading = function () {
+  document.body.style.overflow = 'auto';
+  document.getElementById('loading-box').classList.add("loaded")
+}
+window.addEventListener('load',endLoading)</script><div class="js-pjax"><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><script src="/13718004742.github.io/js/third-party/activate-power-mode.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = true;
+document.body.addEventListener('input', POWERMODE);
+</script><script src="/13718004742.github.io/js/third-party/click_heart.js" async="async"></script></div></body></html>
