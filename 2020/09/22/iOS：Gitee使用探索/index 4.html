@@ -1,0 +1,172 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Gitee使用探索 | 张建的博客</title><meta name="description" content="Gitee由于入职新公司：中国图书进出口集团总公司，领导要求使用码云，即Gitee，所以我也用了这个代码管理平台，使用流程和其他Github等都差不多，流程如下: 1.登录gitee,新建仓库：  2.填写仓库信息，注意选择 内部开源  3.提交完成仓库创建  4.配置ssh公钥,进入设置：  5.找到安全设置-&gt;ssh公钥，将电脑的公钥配置到仓库  1）查看本地已经生成的秘钥: 跳转到.s"><meta name="keywords" content="iOS"><meta name="author" content="小J,13718004742@163.com"><meta name="copyright" content="小J"><meta name="format-detection" content="telephone=no"><link rel="shortcut icon" href="/13718004742.github.io/img/favicon.png"><link rel="canonical" href="https://www.bboyzj.cn/2020/09/22/iOS%EF%BC%9AGitee%E4%BD%BF%E7%94%A8%E6%8E%A2%E7%B4%A2/"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//fonts.googleapis.com" crossorigin="crossorigin"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><meta property="og:type" content="article"><meta property="og:title" content="Gitee使用探索"><meta property="og:url" content="https://www.bboyzj.cn/2020/09/22/iOS%EF%BC%9AGitee%E4%BD%BF%E7%94%A8%E6%8E%A2%E7%B4%A2/"><meta property="og:site_name" content="张建的博客"><meta property="og:description" content="Gitee由于入职新公司：中国图书进出口集团总公司，领导要求使用码云，即Gitee，所以我也用了这个代码管理平台，使用流程和其他Github等都差不多，流程如下: 1.登录gitee,新建仓库：  2.填写仓库信息，注意选择 内部开源  3.提交完成仓库创建  4.配置ssh公钥,进入设置：  5.找到安全设置-&gt;ssh公钥，将电脑的公钥配置到仓库  1）查看本地已经生成的秘钥: 跳转到.s"><meta property="og:image" content="https://user-images.githubusercontent.com/25925248/89222506-be0f2480-d607-11ea-823f-aed914e3b27e.jpg"><meta property="article:published_time" content="2020-09-22T04:55:43.000Z"><meta property="article:modified_time" content="2020-10-17T04:08:10.819Z"><meta name="twitter:card" content="summary"><script>var activateDarkMode = function () {
+  document.documentElement.setAttribute('data-theme', 'dark')
+  if (document.querySelector('meta[name="theme-color"]') !== null) {
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#000')
+  }
+}
+var activateLightMode = function () {
+  document.documentElement.setAttribute('data-theme', 'light')
+  if (document.querySelector('meta[name="theme-color"]') !== null) {
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#fff')
+  }
+}
+
+var getCookies = function (name) {
+  const value = `; ${document.cookie}`
+  const parts = value.split(`; ${name}=`)
+  if (parts.length === 2) return parts.pop().split(';').shift()
+}
+
+var autoChangeMode = 'false'
+var t = getCookies('theme')
+if (autoChangeMode === '1') {
+  var isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+  var isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+  var isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+  var hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+  if (t === undefined) {
+    if (isLightMode) activateLightMode()
+    else if (isDarkMode) activateDarkMode()
+    else if (isNotSpecified || hasNoSupport) {
+      console.log('You specified no preference for a color scheme or your browser does not support it. I Schedule dark mode during night time.')
+      var now = new Date()
+      var hour = now.getHours()
+      var isNight = hour <= 6 || hour >= 18
+      isNight ? activateDarkMode() : activateLightMode()
+    }
+    window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+      if (Cookies.get('theme') === undefined) {
+        e.matches ? activateDarkMode() : activateLightMode()
+      }
+    })
+  } else if (t === 'light') activateLightMode()
+  else activateDarkMode()
+} else if (autoChangeMode === '2') {
+  now = new Date()
+  hour = now.getHours()
+  isNight = hour <= 6 || hour >= 18
+  if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+  else if (t === 'light') activateLightMode()
+  else activateDarkMode()
+} else {
+  if (t === 'dark') activateDarkMode()
+  else if (t === 'light') activateLightMode()
+}</script><link rel="stylesheet" href="/13718004742.github.io/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Titillium+Web&amp;display=swap"><script>var GLOBAL_CONFIG = { 
+  root: '/13718004742.github.io/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  bookmark: {
+    message_prev: '按',
+    message_next: '键将本页加入书签'
+  },
+  runtime_unit: '天',
+  runtime: false,
+  copyright: {"limitCount":50,"languages":{"author":"作者: 小J","link":"链接: ","source":"来源: 张建的博客","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  ClickShowText: undefined,
+  medium_zoom: false,
+  fancybox: true,
+  Snackbar: undefined,
+  justifiedGallery: {
+    js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+    css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+  },
+  baiduPush: false,
+  highlightCopy: true,
+  highlightLang: true,
+  isPhotoFigcaption: false,
+  islazyload: true,
+  isanchor: false    
+}</script><script id="config_change">var GLOBAL_CONFIG_SITE = { 
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isSidebar: true,
+  postUpdate: '2020-10-17 12:08:10'
+}</script><noscript><style>
+#nav {
+  opacity: 1
+}
+.justified-gallery img {
+  opacity: 1
+}
+</style></noscript><meta name="generator" content="Hexo 5.0.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" data-lazy-src="/13718004742.github.io/img/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/13718004742.github.io/archives/"><div class="headline">文章</div><div class="length_num">91</div></a></div></div><div class="mobile_data_item is-center">      <div class="mobile_data_link"><a href="/13718004742.github.io/tags/"><div class="headline">标签</div><div class="length_num">5</div></a></div></div><div class="mobile_data_item is-center">     <div class="mobile_data_link"><a href="/13718004742.github.io/categories/"><div class="headline">分类</div><div class="length_num">14</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/13718004742.github.io/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 菜单</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/13718004742.github.io/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/13718004742.github.io/movies/"><i class="fa-fw fas fa fa-film"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/link/"><i class="fa-fw fa fa-users"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/messageboard/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div></div></div></div><div id="body-wrap"><div id="web_bg" data-type="photo"></div><div id="sidebar"><i class="fas fa-arrow-right on" id="toggle-sidebar"></i><div class="sidebar-toc"><div class="sidebar-toc__title">目录</div><div class="sidebar-toc__progress"><span class="progress-notice">你已经读了</span><span class="progress-num">0</span><span class="progress-percentage">%</span><div class="sidebar-toc__progress-bar">     </div></div><div class="sidebar-toc__content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Gitee"><span class="toc-number">1.</span> <span class="toc-text">Gitee</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%B0%86%E6%9C%AC%E5%9C%B0%E5%B7%B2%E5%AD%98%E5%9C%A8%E7%9A%84%E4%BB%A3%E7%A0%81%E6%96%87%E4%BB%B6%E6%8E%A8%E9%80%81%E5%88%B0%E8%BF%9C%E7%A8%8BGitee"><span class="toc-number">2.</span> <span class="toc-text">将本地已存在的代码文件推送到远程Gitee</span></a></li></ol></div></div></div><header class="post-bg" id="page-header" style="background-image: url(https://user-images.githubusercontent.com/25925248/89222506-be0f2480-d607-11ea-823f-aed914e3b27e.jpg)"><nav id="nav"><span class="pull-left" id="blog_name"><a class="blog_title" id="site-name" href="/13718004742.github.io/">张建的博客</a></span><span class="pull-right menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/13718004742.github.io/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 菜单</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/13718004742.github.io/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/13718004742.github.io/movies/"><i class="fa-fw fas fa fa-film"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/link/"><i class="fa-fw fa fa-users"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/messageboard/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div></div><span class="toggle-menu close"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></span></span></nav><div id="post-info"><div id="post-title"><div class="posttitle">Gitee使用探索</div></div><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-09-22T04:55:43.000Z" title="发表于 2020-09-22 12:55:43">2020-09-22</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2020-10-17T04:08:10.819Z" title="更新于 2020-10-17 12:08:10">2020-10-17</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/13718004742.github.io/categories/iOS/">iOS</a></span></div><div class="meta-secondline"> <span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">975</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>4分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout_post" id="content-inner"><article id="post"><div class="post-content" id="article-container"><h1 id="Gitee"><a href="#Gitee" class="headerlink" title="Gitee"></a>Gitee</h1><p>由于入职新公司：中国图书进出口集团总公司，领导要求使用<code>码云</code>，即<code>Gitee</code>，所以我也用了这个代码管理平台，使用流程和其他<code>Github</code>等都差不多，流程如下:</p>
+<p>1.登录gitee,新建仓库：</p>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/93846617-278de400-fcd7-11ea-96c4-789bf2cdeae4.png"></p>
+<p>2.填写仓库信息，注意选择 <code>内部开源</code></p>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/93846354-5061a980-fcd6-11ea-8abe-4390e1ca4d1d.jpeg"></p>
+<p>3.<code>提交</code>完成仓库创建</p>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/93846514-d41b9600-fcd6-11ea-8a12-5edd40ba3e92.png"></p>
+<p>4.配置<code>ssh</code>公钥,进入设置：</p>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/93846715-67ed6200-fcd7-11ea-81ee-9f630e028ba1.png"></p>
+<p>5.找到<code>安全设置</code>-&gt;<code>ssh公钥</code>，将电脑的公钥配置到仓库</p>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/93847221-eac2ec80-fcd8-11ea-951b-d3ccf911acb4.png"></p>
+<p>1）查看本地已经生成的秘钥:</p>
+<p>跳转到<code>.ssh</code>文件夹下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">mac@MacdeMBP ~ % cd ~&#x2F;.ssh</span><br><span class="line">mac@MacdeMBP .ssh % ls</span><br><span class="line">id_rsa        id_rsa.pub    known_hosts</span><br><span class="line">mac@MacdeMBP .ssh % </span><br></pre></td></tr></table></figure>
+
+<p>查看当前文件夹下的<code>id_rsa.pub</code>:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mac@MacdeMBP .ssh % cat id_rsa.pub</span><br><span class="line"></span><br><span class="line">此处显示的省略...</span><br></pre></td></tr></table></figure>
+
+<p>2）生成新的<code>ssh</code>公钥</p>
+<ul>
+<li>在gitee上添加主邮箱地址（一般为公司邮箱）</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">邮箱为Gitee上的邮箱地址</span><br><span class="line">mac@MacdeMacBook-Pro .ssh % ssh-keygen -t rsa -C &quot;zhangjian@epod.cn&quot;</span><br><span class="line"></span><br><span class="line">然后一路回车</span><br><span class="line">Generating public&#x2F;private rsa key pair.</span><br><span class="line">Enter file in which to save the key (&#x2F;Users&#x2F;mac&#x2F;.ssh&#x2F;id_rsa): </span><br><span class="line">Enter passphrase (empty for no passphrase): </span><br><span class="line">Enter same passphrase again: </span><br><span class="line">Your identification has been saved in &#x2F;Users&#x2F;mac&#x2F;.ssh&#x2F;id_rsa.</span><br><span class="line">Your public key has been saved in &#x2F;Users&#x2F;mac&#x2F;.ssh&#x2F;id_rsa.pub.</span><br><span class="line">The key fingerprint is:</span><br><span class="line">SHA256:U3F8eYroeZjnks6UWT5JJdxSRwckPZ+FYPO1pcfF98A zj@fjreading.com</span><br><span class="line">The key&#39;s randomart image is:</span><br><span class="line">+---[RSA 2048]----+</span><br><span class="line">|          ..*&#x3D;+*B|</span><br><span class="line">|           &#x3D;.*E&#x3D;X|</span><br><span class="line">|          ..+o&#x3D;BB|</span><br><span class="line">|         .. .+.oo|</span><br><span class="line">|        S. +o    |</span><br><span class="line">|         .&#x3D;*o.   |</span><br><span class="line">|          +&#x3D;+    |</span><br><span class="line">|         oo ..   |</span><br><span class="line">|         .o.     |</span><br><span class="line">+----[SHA256]-----+</span><br><span class="line">mac@MacdeMacBook-Pro .ssh % </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h1 id="将本地已存在的代码文件推送到远程Gitee"><a href="#将本地已存在的代码文件推送到远程Gitee" class="headerlink" title="将本地已存在的代码文件推送到远程Gitee"></a>将本地已存在的代码文件推送到远程Gitee</h1><p>1.初始化本地仓库</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mac@MacdeMBP SRSF % git init</span><br><span class="line">Initialized empty Git repository in &#x2F;Users&#x2F;mac&#x2F;Desktop&#x2F;SRSF&#x2F;.git&#x2F;</span><br></pre></td></tr></table></figure>
+
+<p>初始化了一个空的仓库</p>
+<p>2.关联本地仓库和远程仓库</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mac@MacdeMBP SRSF % git remote add origin https:&#x2F;&#x2F;gitee.com&#x2F;epod&#x2F;private-study-ios-app.git</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>这样就完成了版本的一次初始化。</p>
+<p>3.拉取远程仓库 <code>master</code> 主分支代码</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">mac@MacdeMBP SRSF % git pull origin master</span><br><span class="line"></span><br><span class="line">warning: no common commits</span><br><span class="line">remote: Enumerating objects: 4, done.</span><br><span class="line">remote: Counting objects: 100% (4&#x2F;4), done.</span><br><span class="line">remote: Compressing objects: 100% (4&#x2F;4), done.</span><br><span class="line">remote: Total 4 (delta 0), reused 0 (delta 0), pack-reused 0</span><br><span class="line">Unpacking objects: 100% (4&#x2F;4), done.</span><br><span class="line">From https:&#x2F;&#x2F;gitee.com&#x2F;epod&#x2F;private-study-ios-app</span><br><span class="line"> * branch            master     -&gt; FETCH_HEAD</span><br><span class="line"> * [new branch]      master     -&gt; origin&#x2F;master</span><br><span class="line">fatal: refusing to merge unrelated histories</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>此时，你输入 <code>git branch</code>，你 本地 就会默认生成一个存在 <code>master</code>主分支</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mac@MacdeMBP SRSF % git branch</span><br><span class="line">* master</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>4.将当前目录所有文件添加到git暂存区</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mac@MacdeMBP SRSF % git add .</span><br></pre></td></tr></table></figure>
+
+<p>5.提交并备注提交信息</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mac@MacdeMBP SRSF % git commit -m &quot;my first commit :1.框架的搭建2.工具的封装&quot;[master (root-commit) 6d9dfd0] my first commit :1.框架的搭建2.工具的封装</span><br><span class="line"> 1012 files changed, 105911 insertions(+)</span><br></pre></td></tr></table></figure>
+
+<p>6.在本地创建一个自己的分支 <code>zj_feature</code>,并切换到 <code>zj_feature</code> 分支</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">mac@MacdeMBP SRSF % git branch zj_feature</span><br><span class="line">mac@MacdeMBP SRSF % git checkout zj_feature</span><br><span class="line">Switched to branch &#39;zj_feature&#39;</span><br><span class="line">mac@MacdeMBP SRSF % git branch</span><br><span class="line">  master</span><br><span class="line">* zj_feature</span><br></pre></td></tr></table></figure>
+
+
+<p>7.在Gitee上新建一个分支 <code>zj_feature</code> ,推送 <code>本地分支（zj_feature）</code>  到 <code>远程分支（zj_feature）</code> 上</p>
+<ul>
+<li><p>如果提示让你输入用户名和密码（一般会在新Mac上出现这种情况）：</p>
+<p>只需要将你的gitee上的 <code>用户名</code> 和 <code>密码</code> 输入即可</p>
+</li>
+<li><p>如果提示如下：</p>
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">mac@MacdeMBP SRSF % git push origin zj_feature</span><br><span class="line">To https:&#x2F;&#x2F;gitee.com&#x2F;epod&#x2F;private-study-ios-app.git</span><br><span class="line"> ! [rejected]        zj_feature -&gt; zj_feature (non-fast-forward)</span><br><span class="line">error: failed to push some refs to &#39;https:&#x2F;&#x2F;gitee.com&#x2F;epod&#x2F;private-study-ios-app.git&#39;</span><br><span class="line">hint: Updates were rejected because the tip of your current branch is behind</span><br><span class="line">hint: its remote counterpart. Integrate the remote changes (e.g.</span><br><span class="line">hint: &#39;git pull ...&#39;) before pushing again.</span><br><span class="line">hint: See the &#39;Note about fast-forwards&#39; in &#39;git push --help&#39; for details.</span><br></pre></td></tr></table></figure>
+
+<p>上面的意思是让我先执行<code>git pull ...</code> 拉取，但是我执行 <code>git pull origin zj_feature</code> 还是有问题。</p>
+<p>原因：在新建仓库时，如果在 <code>码云</code> 平台仓库上已经 存在 <code>readme</code> 或 <code>其他</code>文件，在提交时可能会`存在冲突</p>
+<p>8.解决办法：忽略历史文件,在终端输入：<code>$git pull origin zj_feature --allow-unrelated-histories</code></p>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/94650871-158cf080-032a-11eb-9821-b7ee765fd55c.png"></p>
+<p>9.最后执行 <code>git push origin zj_feature</code> 到 远程仓库 <code>zj_feature</code> 分支上</p>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/94650977-40774480-032a-11eb-815e-24103a7ba8de.png"></p>
+<p>上图代表的是提交成功了</p>
+</div><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:13718004742@163.com">小J</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://www.bboyzj.cn/2020/09/22/iOS%EF%BC%9AGitee%E4%BD%BF%E7%94%A8%E6%8E%A2%E7%B4%A2/">https://www.bboyzj.cn/2020/09/22/iOS%EF%BC%9AGitee%E4%BD%BF%E7%94%A8%E6%8E%A2%E7%B4%A2/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://www.bboyzj.cn" target="_blank">张建的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/13718004742.github.io/tags/iOS/">iOS</a></div><div class="post_share"><div class="social-share" data-image="https://user-images.githubusercontent.com/25925248/89222506-be0f2480-d607-11ea-823f-aed914e3b27e.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i> 打赏<div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat.jpg" target="_blank"><img class="post-qr-code-img" data-lazy-src="/13718004742.github.io/img/wechat.jpg" alt="wechat"/></a><div class="post-qr-code-desc">wechat</div></li><li class="reward-item"><a href="/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" data-lazy-src="/13718004742.github.io/img/alipay.jpg" alt="alipay"/></a><div class="post-qr-code-desc">alipay</div></li></ul></div></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/13718004742.github.io/2020/09/24/OC%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8609%EF%BC%9Aisa%E8%B5%B0%E5%90%91&amp;%E7%BB%A7%E6%89%BF%E5%88%86%E6%9E%90/"><img class="prev-cover" data-lazy-src="https://user-images.githubusercontent.com/25925248/94631207-608f0f80-02fa-11eb-8863-fb55aab72824.jpg" onerror="onerror=null;src='/13718004742.github.io/img/404.jpg'"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">OC底层原理09：isa走向&amp;继承分析</div></div></a></div><div class="next-post pull-right"><a href="/13718004742.github.io/2020/09/22/iOS%E5%BC%80%E5%8F%91%E8%80%85%E8%B4%A6%E5%8F%B700%EF%BC%9A%E5%BC%80%E5%8F%91%E8%80%85%E8%B4%A6%E5%8F%B7%E6%8E%A2%E7%B4%A2/"><img class="next-cover" data-lazy-src="https://user-images.githubusercontent.com/25925248/89222564-d717d580-d607-11ea-9f09-74358da90718.jpg" onerror="onerror=null;src='/13718004742.github.io/img/404.jpg'"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">iOS开发者账号00：开发者账号探索</div></div></a></div></nav><div class="relatedPosts"><div class="relatedPosts_headline"><i class="fas fa-thumbs-up fa-fw"></i><span> 相关推荐</span></div><div class="relatedPosts_list"><div class="relatedPosts_item"><a href="/13718004742.github.io/2020/09/04/OC：APP图标3D-Touch菜单探索/" title="OC：APP图标3D Touch菜单探索"><img class="relatedPosts_cover" data-lazy-src="https://user-images.githubusercontent.com/25925248/89218617-f8c18e80-d600-11ea-8163-29afd2505581.jpg"><div class="relatedPosts_main is-center"><div class="relatedPosts_date"><i class="far fa-calendar-alt fa-fw"></i> 2020-09-04</div><div class="relatedPosts_title">OC：APP图标3D Touch菜单探索</div></div></a></div><div class="relatedPosts_item"><a href="/13718004742.github.io/2020/09/04/OC：APP图标Widget小组件探索/" title="OC：APP图标Widget小组件探索"><img class="relatedPosts_cover" data-lazy-src="https://user-images.githubusercontent.com/25925248/94631207-608f0f80-02fa-11eb-8863-fb55aab72824.jpg"><div class="relatedPosts_main is-center"><div class="relatedPosts_date"><i class="far fa-calendar-alt fa-fw"></i> 2020-09-04</div><div class="relatedPosts_title">OC：APP图标Widget小组件探索</div></div></a></div><div class="relatedPosts_item"><a href="/13718004742.github.io/2020/08/13/OC：Charles探索/" title="OC：Charles探索"><img class="relatedPosts_cover" data-lazy-src="https://user-images.githubusercontent.com/25925248/89219769-f829f780-d602-11ea-96a1-e38c6eb5ba22.jpg"><div class="relatedPosts_main is-center"><div class="relatedPosts_date"><i class="far fa-calendar-alt fa-fw"></i> 2020-08-13</div><div class="relatedPosts_title">OC：Charles探索</div></div></a></div><div class="relatedPosts_item"><a href="/13718004742.github.io/2020/08/25/OC：Copy和Strong探索/" title="OC：Copy和Strong探索"><img class="relatedPosts_cover" data-lazy-src="https://user-images.githubusercontent.com/25925248/89222564-d717d580-d607-11ea-9f09-74358da90718.jpg"><div class="relatedPosts_main is-center"><div class="relatedPosts_date"><i class="far fa-calendar-alt fa-fw"></i> 2020-08-25</div><div class="relatedPosts_title">OC：Copy和Strong探索</div></div></a></div><div class="relatedPosts_item"><a href="/13718004742.github.io/2020/08/27/OC：CoreText(一)基本用法/" title="OC：CoreText探索"><img class="relatedPosts_cover" data-lazy-src="https://user-images.githubusercontent.com/25925248/89218638-feb76f80-d600-11ea-88ac-c0f6fea6ee52.jpg"><div class="relatedPosts_main is-center"><div class="relatedPosts_date"><i class="far fa-calendar-alt fa-fw"></i> 2020-08-27</div><div class="relatedPosts_title">OC：CoreText探索</div></div></a></div><div class="relatedPosts_item"><a href="/13718004742.github.io/2020/08/13/OC：Crash探索/" title="OC：Crash探索"><img class="relatedPosts_cover" data-lazy-src="https://user-images.githubusercontent.com/25925248/89222527-c8c9b980-d607-11ea-9d34-360cc1031a4a.jpeg"><div class="relatedPosts_main is-center"><div class="relatedPosts_date"><i class="far fa-calendar-alt fa-fw"></i> 2020-08-13</div><div class="relatedPosts_title">OC：Crash探索</div></div></a></div></div></div></article></main><footer id="footer" style="background-image: url(https://user-images.githubusercontent.com/25925248/89222506-be0f2480-d607-11ea-823f-aed914e3b27e.jpg)" data-type="photo"><div id="footer-wrap"><div class="copyright">&copy;2020 By 小J</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text"><a target="_blank" rel="noopener" href="http://www.bboyzj.top/">Hi, welcome to my blog!</a></div></div></footer></div><section id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="font_plus" type="button" title="放大字体"><i class="fas fa-plus"></i></button><button id="font_minus" type="button" title="缩小字体"><i class="fas fa-minus"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></section><div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/13718004742.github.io/js/utils.js"></script><script src="/13718004742.github.io/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module" defer></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js" async></script><script>var endLoading = function () {
+  document.body.style.overflow = 'auto';
+  document.getElementById('loading-box').classList.add("loaded")
+}
+window.addEventListener('load',endLoading)</script><div class="js-pjax"><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><script src="/13718004742.github.io/js/third-party/activate-power-mode.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = true;
+document.body.addEventListener('input', POWERMODE);
+</script><script src="/13718004742.github.io/js/third-party/click_heart.js" async="async"></script></div></body></html>
