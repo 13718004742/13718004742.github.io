@@ -1,0 +1,388 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OC底层原理08：isa和类关联探索 | 张建的博客</title><meta name="description" content="前言本文的主要目的是理解类与isa是如何关联的 在介绍正文之前，首先需要理解一个概念：OC对象的本质是什么？ 在探索oc对象本质前，先了解一个编译器：clang Clang1.介绍Clang是⼀个由Apple主导编写，基于LLVM的C&#x2F;C++&#x2F;Objective-C编译器 主要是用于底层编译，将一些文件输出成c++文件，例如main.m 输出成main.cpp，其目的是为了更好的观察底层的一些结构"><meta name="keywords" content="iOS-OC"><meta name="author" content="小J,13718004742@163.com"><meta name="copyright" content="小J"><meta name="format-detection" content="telephone=no"><link rel="shortcut icon" href="/13718004742.github.io/img/favicon.png"><link rel="canonical" href="https://www.bboyzj.cn/2020/09/18/OC%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8608%EF%BC%9Aisa%E5%92%8C%E7%B1%BB%E5%85%B3%E8%81%94%E6%8E%A2%E7%B4%A2/"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//fonts.googleapis.com" crossorigin="crossorigin"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><meta property="og:type" content="article"><meta property="og:title" content="OC底层原理08：isa和类关联探索"><meta property="og:url" content="https://www.bboyzj.cn/2020/09/18/OC%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8608%EF%BC%9Aisa%E5%92%8C%E7%B1%BB%E5%85%B3%E8%81%94%E6%8E%A2%E7%B4%A2/"><meta property="og:site_name" content="张建的博客"><meta property="og:description" content="前言本文的主要目的是理解类与isa是如何关联的 在介绍正文之前，首先需要理解一个概念：OC对象的本质是什么？ 在探索oc对象本质前，先了解一个编译器：clang Clang1.介绍Clang是⼀个由Apple主导编写，基于LLVM的C&#x2F;C++&#x2F;Objective-C编译器 主要是用于底层编译，将一些文件输出成c++文件，例如main.m 输出成main.cpp，其目的是为了更好的观察底层的一些结构"><meta property="og:image" content="https://user-images.githubusercontent.com/25925248/96336894-448abc80-10b5-11eb-9bbd-806faec1fa43.jpg"><meta property="article:published_time" content="2020-09-18T07:04:23.000Z"><meta property="article:modified_time" content="2020-10-17T05:43:08.361Z"><meta name="twitter:card" content="summary"><script>var activateDarkMode = function () {
+  document.documentElement.setAttribute('data-theme', 'dark')
+  if (document.querySelector('meta[name="theme-color"]') !== null) {
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#000')
+  }
+}
+var activateLightMode = function () {
+  document.documentElement.setAttribute('data-theme', 'light')
+  if (document.querySelector('meta[name="theme-color"]') !== null) {
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#fff')
+  }
+}
+
+var getCookies = function (name) {
+  const value = `; ${document.cookie}`
+  const parts = value.split(`; ${name}=`)
+  if (parts.length === 2) return parts.pop().split(';').shift()
+}
+
+var autoChangeMode = 'false'
+var t = getCookies('theme')
+if (autoChangeMode === '1') {
+  var isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+  var isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+  var isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+  var hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+  if (t === undefined) {
+    if (isLightMode) activateLightMode()
+    else if (isDarkMode) activateDarkMode()
+    else if (isNotSpecified || hasNoSupport) {
+      console.log('You specified no preference for a color scheme or your browser does not support it. I Schedule dark mode during night time.')
+      var now = new Date()
+      var hour = now.getHours()
+      var isNight = hour <= 6 || hour >= 18
+      isNight ? activateDarkMode() : activateLightMode()
+    }
+    window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+      if (Cookies.get('theme') === undefined) {
+        e.matches ? activateDarkMode() : activateLightMode()
+      }
+    })
+  } else if (t === 'light') activateLightMode()
+  else activateDarkMode()
+} else if (autoChangeMode === '2') {
+  now = new Date()
+  hour = now.getHours()
+  isNight = hour <= 6 || hour >= 18
+  if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+  else if (t === 'light') activateLightMode()
+  else activateDarkMode()
+} else {
+  if (t === 'dark') activateDarkMode()
+  else if (t === 'light') activateLightMode()
+}</script><link rel="stylesheet" href="/13718004742.github.io/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Titillium+Web&amp;display=swap"><script>var GLOBAL_CONFIG = { 
+  root: '/13718004742.github.io/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  bookmark: {
+    message_prev: '按',
+    message_next: '键将本页加入书签'
+  },
+  runtime_unit: '天',
+  runtime: false,
+  copyright: {"limitCount":50,"languages":{"author":"作者: 小J","link":"链接: ","source":"来源: 张建的博客","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  ClickShowText: undefined,
+  medium_zoom: false,
+  fancybox: true,
+  Snackbar: undefined,
+  justifiedGallery: {
+    js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+    css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+  },
+  baiduPush: false,
+  highlightCopy: true,
+  highlightLang: true,
+  isPhotoFigcaption: false,
+  islazyload: true,
+  isanchor: false    
+}</script><script id="config_change">var GLOBAL_CONFIG_SITE = { 
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isSidebar: true,
+  postUpdate: '2020-10-17 13:43:08'
+}</script><noscript><style>
+#nav {
+  opacity: 1
+}
+.justified-gallery img {
+  opacity: 1
+}
+</style></noscript><meta name="generator" content="Hexo 5.0.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" data-lazy-src="/13718004742.github.io/img/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/13718004742.github.io/archives/"><div class="headline">文章</div><div class="length_num">102</div></a></div></div><div class="mobile_data_item is-center">      <div class="mobile_data_link"><a href="/13718004742.github.io/tags/"><div class="headline">标签</div><div class="length_num">5</div></a></div></div><div class="mobile_data_item is-center">     <div class="mobile_data_link"><a href="/13718004742.github.io/categories/"><div class="headline">分类</div><div class="length_num">13</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/13718004742.github.io/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 菜单</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/13718004742.github.io/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/13718004742.github.io/movies/"><i class="fa-fw fas fa fa-film"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/link/"><i class="fa-fw fa fa-users"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/messageboard/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div></div></div></div><div id="body-wrap"><div id="web_bg" data-type="photo"></div><div id="sidebar"><i class="fas fa-arrow-right on" id="toggle-sidebar"></i><div class="sidebar-toc"><div class="sidebar-toc__title">目录</div><div class="sidebar-toc__progress"><span class="progress-notice">你已经读了</span><span class="progress-num">0</span><span class="progress-percentage">%</span><div class="sidebar-toc__progress-bar">     </div></div><div class="sidebar-toc__content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Clang"><span class="toc-number">2.</span> <span class="toc-text">Clang</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AF%B9%E8%B1%A1%E7%9A%84%E6%9C%AC%E8%B4%A8"><span class="toc-number">3.</span> <span class="toc-text">对象的本质</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#objc-setProperty"><span class="toc-number">4.</span> <span class="toc-text">objc_setProperty</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%81%94%E5%90%88%E4%BD%93%E5%92%8C%E7%BB%93%E6%9E%84%E4%BD%93"><span class="toc-number">5.</span> <span class="toc-text">联合体和结构体</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#isa%E7%9A%84%E7%B1%BB%E5%9E%8B"><span class="toc-number">6.</span> <span class="toc-text">isa的类型</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#dealloc%E9%87%8A%E6%94%BE"><span class="toc-number">7.</span> <span class="toc-text">dealloc释放</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#isa-%E5%92%8C-%E7%B1%BB%E5%85%B3%E8%81%94"><span class="toc-number">8.</span> <span class="toc-text">isa 和 类关联</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#isa-%E8%BF%94%E5%9B%9EClass%E7%B1%BB%E5%9E%8B%E7%9A%84%E9%AA%8C%E8%AF%81"><span class="toc-number">9.</span> <span class="toc-text">isa 返回Class类型的验证</span></a></li></ol></div></div></div><header class="post-bg" id="page-header" style="background-image: url(https://user-images.githubusercontent.com/25925248/96336894-448abc80-10b5-11eb-9bbd-806faec1fa43.jpg)"><nav id="nav"><span class="pull-left" id="blog_name"><a class="blog_title" id="site-name" href="/13718004742.github.io/">张建的博客</a></span><span class="pull-right menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/13718004742.github.io/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 菜单</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/13718004742.github.io/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/13718004742.github.io/movies/"><i class="fa-fw fas fa fa-film"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/link/"><i class="fa-fw fa fa-users"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/messageboard/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div></div><span class="toggle-menu close"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></span></span></nav><div id="post-info"><div id="post-title"><div class="posttitle">OC底层原理08：isa和类关联探索</div></div><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-09-18T07:04:23.000Z" title="发表于 2020-09-18 15:04:23">2020-09-18</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2020-10-17T05:43:08.361Z" title="更新于 2020-10-17 13:43:08">2020-10-17</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/13718004742.github.io/categories/OC-%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86%E6%8E%A2%E7%B4%A2%E7%AF%87/">OC-底层原理探索篇</a></span></div><div class="meta-secondline"> <span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">4.5k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>16分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout_post" id="content-inner"><article id="post"><div class="post-content" id="article-container"><h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>本文的主要目的是理解<code>类与isa</code>是如何<code>关联</code>的</p>
+<p>在介绍正文之前，首先需要理解一个概念：OC<code>对象</code>的<code>本质</code>是什么？</p>
+<p>在探索oc对象本质前，先了解一个编译器：<code>clang</code></p>
+<h1 id="Clang"><a href="#Clang" class="headerlink" title="Clang"></a>Clang</h1><p>1.介绍<br><code>Clang</code>是⼀个由<code>Apple</code>主导编写，基于<code>LLVM的C/C++/Objective-C</code>编译器</p>
+<p>主要是用于<code>底层编译</code>，将一些文件输出成<code>c++</code>文件，例如<code>main.m</code> 输出成<code>main.cpp</code>，其目的是为了更好的观察<code>底层</code>的一些<code>结构</code> 及 <code>实现</code>的逻辑，方便理解底层原理。</p>
+<p>2.常用编译命令：</p>
+<p><code>clang -rewrite-objc main.m -o main.cpp 把⽬标⽂件编译成c++⽂件</code></p>
+<p>3.xcode安装的时候顺带安装了<code>xcrun</code>命令，<code>xcrun</code>命令在<code>clang</code>的基础上进⾏了<br>⼀些封装，要更好⽤⼀些：</p>
+<p><code>xcrun -sdk iphonesimulator clang -arch arm64 -rewrite-objc main.m -o  main-arm64.cpp (模拟器) </code></p>
+<p><code>xcrun -sdk iphoneos clang -arch arm64 -rewrite-objc main.m -o mainarm64.cpp (⼿机) </code></p>
+<h1 id="对象的本质"><a href="#对象的本质" class="headerlink" title="对象的本质"></a>对象的本质</h1><p>1.第一步：自定义一个<code>ZJPerson</code>类，添加一个属性<code>name</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">@interface ZJPerson : NSObject</span><br><span class="line">@property (nonatomic, copy) NSString *name;</span><br><span class="line">@end</span><br><span class="line"></span><br><span class="line">@implementation ZJPerson</span><br><span class="line">@end</span><br></pre></td></tr></table></figure>
+
+<p>2.通过终端，利用<code>clang</code>将<code>main.m</code>编译成 <code>main.cpp</code>，有以下几种编译命令，这里使用的是第一种:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;1、将 main.m 编译成 main.cpp</span><br><span class="line">clang -rewrite-objc main.m -o main.cpp</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;2、将 main.m 编译成  main.cpp</span><br><span class="line">clang -rewrite-objc -fobjc-arc -fobjc-runtime&#x3D;ios-13.0.0 -isysroot &#x2F; &#x2F;Applications&#x2F;Xcode.app&#x2F;Contents&#x2F;Developer&#x2F;Platforms&#x2F;iPhoneSimulator.platform&#x2F;Developer&#x2F;SDKs&#x2F;iPhoneSimulator13.7.sdk main.m</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;以下两种方式是通过指定架构模式的命令行，使用xcode工具 xcrun</span><br><span class="line">&#x2F;&#x2F;3、模拟器文件编译</span><br><span class="line">xcrun -sdk iphonesimulator clang -arch arm64 -rewrite-objc main.m -o </span><br><span class="line">main-arm64.cpp </span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;4、真机文件编译</span><br><span class="line">xcrun -sdk iphoneos clang -arch arm64 -rewrite-objc main.m -o mainarm64.cpp </span><br></pre></td></tr></table></figure>
+
+<p>3.打开编译好的<code>main.cpp</code>，找到<code>ZJPerson</code>的定义，发现<code>ZJPerson</code>在底层会被编译成 <code>struct</code> 结构体:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; NSObject的定义</span><br><span class="line">@interface NSObject &lt;NSObject&gt; &#123;</span><br><span class="line">#pragma clang diagnostic push</span><br><span class="line">#pragma clang diagnostic ignored &quot;-Wobjc-interface-ivars&quot;</span><br><span class="line">    Class isa  OBJC_ISA_AVAILABILITY;</span><br><span class="line">#pragma clang diagnostic pop</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; NSObject的底层编译</span><br><span class="line">struct NSObject_IMPL &#123;</span><br><span class="line">    Class isa;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; ZJPerson的底层编译</span><br><span class="line">struct ZJPerson_IMPL &#123;</span><br><span class="line">    &#x2F;&#x2F; NSObject_IVARS是isa</span><br><span class="line">    &#x2F;&#x2F; 结构体在c&#x2F;c++可以继承的，继承自NSObject_IMPL</span><br><span class="line">    struct NSObject_IMPL NSObject_IVARS; </span><br><span class="line">    NSString *_name;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>如下图：<br><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/93706748-1c627900-fb5c-11ea-969c-fccbde897f72.png"></p>
+<ul>
+<li><code>ZJPerson</code>继承自<code>NSObject</code>，属于伪继承，<code>伪继承</code>的方式是直接将<code>NSObject</code>结构体定义为<code>ZJPerson</code>中的第一个属性，意味着<code>ZJPerson</code> 拥有 <code>NSObject</code>中的所有<code>成员变量</code>。</li>
+<li><code>ZJPerson</code>中的第一个属性就是<code>Class isa</code>。</li>
+</ul>
+<p>4.总结</p>
+<ul>
+<li>OC<code>对象</code>的<code>本质</code> 其实就是 <code>结构体</code></li>
+<li><code>ZJPerson</code>中的<code>isa</code>是<code>继承</code>自<code>NSObject</code>中的<code>isa</code></li>
+</ul>
+<h1 id="objc-setProperty"><a href="#objc-setProperty" class="headerlink" title="objc_setProperty"></a>objc_setProperty</h1><p>由上面可知<code>ZJPerson</code>被编译成<code>结构体</code>，属性<code>name</code>被编译成对应的<code>set</code>和<code>get</code>方法，其中<code>set</code>方法的实现是依赖<code>runtime API objc_setProperty</code>实现的。</p>
+<p>1.我们可以通过查找<code>objc4</code>源码来查看<code>objc_setProperty</code>底层的进一步实现：</p>
+<p>1）全局搜索<code>objc_setProperty</code>，查找所在位置</p>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/93706832-e2de3d80-fb5c-11ea-8d4d-464e291864ec.png"></p>
+<p>2）点击进入<code>objc_setProperty</code>内部查看源码实现</p>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/93707006-f4741500-fb5d-11ea-9a0d-0fc9238afa45.png"></p>
+<p>3）点击<code>reallySetProperty</code>查看内部源码实现</p>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/93706916-5d0ec200-fb5d-11ea-94d5-7e1769231df1.png"></p>
+<p>2.总结<br>通过对<code>objc_setProperty</code>底层源码探索，我们可得出以下几个结论：</p>
+<ul>
+<li><p><code>所有</code>的<code>set</code>方法最终都将会<code>找到objc_setProperty</code>LLVM中间<code>隔离层</code>函数去<code>调用</code></p>
+</li>
+<li><p><code>objc_setProperty</code>用于<code>关联上层</code>的<code>set</code>方法 和 <code>下层</code>的<code>reallySetProperty</code>的一个 <code>接口隔离层</code>函数</p>
+</li>
+<li><p>这么设计的原因是，如果上层有<code>很多set</code>方法，如果你直接调用<code>下层</code>的<code>LLVM</code>方法，会<code>产生很多中间层变量</code>，非常恶心，<code>很难</code>去处理（很难<code>找</code>）</p>
+</li>
+<li><p>那么如何区分呢，系统根据<code>cmd</code>去查找，就是说无论你<code>上层</code>怎么<code>变化</code>，我下层<code>reallySetProperty</code>都<code>不用变化</code>，你<code>下层</code>怎么<code>变化</code>，<code>上层</code>都<code>不会被影响</code></p>
+</li>
+</ul>
+<p>3.上层、隔离层、底层之间的关系图：</p>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/93707549-50d93380-fb62-11ea-840e-66b9aa0d47d5.png"></p>
+<h1 id="联合体和结构体"><a href="#联合体和结构体" class="headerlink" title="联合体和结构体"></a>联合体和结构体</h1><p>在<a href="https://www.bboyzj.cn/2020/09/12/iOS-OC%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8603%EF%BC%9Aalloc&init&new%E6%8E%A2%E7%B4%A2/">iOS-OC底层原理03：alloc&amp;init&amp;new探索</a>和<a href="https://www.bboyzj.cn/2020/09/12/iOS-OC%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8607%EF%BC%9Amalloc%E6%BA%90%E7%A0%81%E6%8E%A2%E7%B4%A2/">iOS-OC底层原理07：malloc源码探索</a>中我们分<br>别探索了alloc核心源码中的前两个，分别是<code>cls-&gt;instanceSize</code>和<code>calloc</code>，今天我们来探索最后一个<code>obj-&gt;initInstanceIsa</code></p>
+<p>在此之前我们需要先了解什么是<code>联合体</code>，它和<code>结构体</code>的区别？</p>
+<p>1.构造数据类型的方式有以下两种：</p>
+<ul>
+<li><p><code>结构体</code>（struct）</p>
+</li>
+<li><p><code>联合体</code>（union，也称为共用体）</p>
+</li>
+</ul>
+<p>2.<code>结构体</code>和<code>联合体</code>写法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;结构体:s表示结构体类型名</span><br><span class="line">struct s</span><br><span class="line">&#123;</span><br><span class="line">    &#x2F;&#x2F;a,b,c表示结构体成员名</span><br><span class="line">    char a;  &#x2F;&#x2F;占1个字节 （0）</span><br><span class="line">    int b;   &#x2F;&#x2F;占4个字节 （4，5，6，7）</span><br><span class="line">    short c; &#x2F;&#x2F;占2个字节 （8，9）</span><br><span class="line">&#125;s1;</span><br><span class="line">&#x2F;&#x2F;s1表示结构体变量名</span><br><span class="line">&#x2F;&#x2F;访问该结构体内部成员时可以采用s1.a&#x3D;1;其中&quot;点&quot;表示结构体成员运算符</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;联合体</span><br><span class="line">&#x2F;&#x2F;u1表示联合体类型名</span><br><span class="line">union u1</span><br><span class="line">&#123;</span><br><span class="line">    &#x2F;&#x2F;a表,b,c示联合体成员名</span><br><span class="line">    char a; &#x2F;&#x2F;占1个字节</span><br><span class="line">    int b;  &#x2F;&#x2F;占4个字节</span><br><span class="line">    short c;&#x2F;&#x2F;占2个字节</span><br><span class="line">&#125;u1;</span><br></pre></td></tr></table></figure>
+
+<p>在main.m中打印一下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">int main(int argc, const char * argv[]) &#123;</span><br><span class="line">    @autoreleasepool &#123;</span><br><span class="line">        printf(&quot;%lu\n&quot;,sizeof(s1));</span><br><span class="line">        printf(&quot;%lu\n&quot;,sizeof(u1));</span><br><span class="line">        NSLog(@&quot;Hello, World!&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">******查看打印结果******</span><br><span class="line">12</span><br><span class="line">4</span><br><span class="line">(lldb) </span><br></pre></td></tr></table></figure>
+
+<p>由结果可知：</p>
+<ul>
+<li><code>结构体</code>的大小为<code>12</code>，最大成员变量的倍数<code>4*3 = 12</code></li>
+<li><code>联合体</code>的大小为<code>4</code>，最大成员变量<code>4</code></li>
+</ul>
+<p>3.结构体（struct）<br><code>结构体</code>：各成员各自拥有<code>自己的内存</code>，各自使用<code>互不干涉</code>，同时存在的，遵循<code>内存对齐</code>原则。一个<code>struct</code>变量的<code>总长度</code>等于<code>所有成员</code>的<code>长度之和</code>。</p>
+<ul>
+<li><p>缺点：所有属性都分配内存，比较浪费内存，假设有<code>4个int</code>成员，一共分配了<code>4*4=16</code>字节的内存，但是在使用时，你只使用了4字节，剩余的12字节就是属于内存的浪费</p>
+</li>
+<li><p>优点：存储容量较大，包容性强，且成员之间不会相互影响</p>
+</li>
+</ul>
+<p>4.联合体（union）<br><code>联合体</code>：各成员<code>共用</code>一块<code>内存</code>空间，并且同时只有一个成员可以得到这块内存的<code>使用权(对该内存的读写)</code>，各变量<code>共用一个内存</code>首地址。因而，联合体比结构体更<code>节约内存</code>。一个<code>union</code>变量的总长度至少能容纳<code>最大</code>的成员变量，而且要满足是所有<code>成员变量</code>类型大小的<code>整数倍</code>。</p>
+<ul>
+<li><p>缺点：，包容性弱</p>
+</li>
+<li><p>优点：所有成员共用一段内存，使内存的使用更为精细灵活，同时也节约内存</p>
+</li>
+</ul>
+<p>5.两者的区别</p>
+<p>1）<code>内存占用</code>情况</p>
+<ul>
+<li><code>结构体</code>的各个成员会<code>占用不同</code>的<code>内存</code>，互相之间没有影响</li>
+<li><code>共用体</code>的所有成员<code>占用同一段</code>内存，修改一个成员会影响其余所有成员</li>
+</ul>
+<p>2）<code>内存分配</code>大小</p>
+<ul>
+<li><code>结构体</code>内存 &gt;= 所有成员占用的内存总和（成员之间可能会有缝隙）</li>
+<li><code>共用体</code>占用的内存等于最大的成员占用的内存</li>
+</ul>
+<h1 id="isa的类型"><a href="#isa的类型" class="headerlink" title="isa的类型"></a>isa的类型</h1><p>1.我们知道<code>isa</code>的类型是<code>isa_t</code>的<code>联合体</code>，<code>isa_t</code>类型使用<code>联合体</code>的<code>原因</code>也是基于<code>内存优化</code>的考虑；这里的内存优化是指在<code>isa</code>指针中通过<code>char + 位域</code>（即二进制中每一位均可表示不同的信息）的原理实现。通常来说，<code>isa</code>指针占用的<code>内存</code>大小是<code>8</code>字节(1字节=8位)，即<code>8*8=64</code>位，已经足够存储很多的信息了，这样可以极大的<code>节省内存</code>，以<code>提高性能</code>。</p>
+<p><code>isa_t源码</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 联合体</span><br><span class="line">union isa_t &#123;</span><br><span class="line">    &#x2F;&#x2F; isa的两种初始化方法</span><br><span class="line">    isa_t() &#123; &#125; </span><br><span class="line">    isa_t(uintptr_t value) : bits(value) &#123; &#125;</span><br><span class="line">    &#x2F;&#x2F;提供了cls 和 bits ，两者是互斥关系</span><br><span class="line">    Class cls; &#x2F;&#x2F; 存储cls信息</span><br><span class="line">    uintptr_t bits; &#x2F;&#x2F; 存储多位的信息</span><br><span class="line">#if defined(ISA_BITFIELD)</span><br><span class="line">    struct &#123;</span><br><span class="line">        ISA_BITFIELD;  &#x2F;&#x2F; defined in isa.h</span><br><span class="line">    &#125;;</span><br><span class="line">#endif</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>2.从<code>isa_t</code>的定义中可以看出：<br>提供了两个成员，<code>cls</code> 和 <code>bits</code>，由联合体的定义所知，这两个成员是<code>互斥</code>的，也就意味着，当初始化<code>isa</code>指针时，有两种初始化方式：</p>
+<ul>
+<li>如果不是<code>nonpointer</code>，通过<code>isa_t(uintptr_t value) : bits(value) &#123; &#125;</code>实现初始化</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 如果不是nonpointer,初始化isa，返回cls信息</span><br><span class="line">if (!nonpointer) &#123;</span><br><span class="line">    &#x2F;&#x2F; 初始化isa</span><br><span class="line">    isa &#x3D; isa_t((uintptr_t)cls);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>如果是<code>nonpointer</code>,通过<code>isa_t()</code>初始化</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 如果是nonpointer的初始化方式</span><br><span class="line">else &#123;</span><br><span class="line">    ASSERT(!DisableNonpointerIsa);</span><br><span class="line">    ASSERT(!cls-&gt;instancesRequireRawIsa());</span><br><span class="line">    </span><br><span class="line">    &#x2F;&#x2F; 初始化isa</span><br><span class="line">    isa_t newisa(0);</span><br><span class="line">    </span><br><span class="line">&#x2F;&#x2F; 返回0</span><br><span class="line">#if SUPPORT_INDEXED_ISA</span><br><span class="line">    ASSERT(cls-&gt;classArrayIndex() &gt; 0);</span><br><span class="line">    newisa.bits &#x3D; ISA_INDEX_MAGIC_VALUE;</span><br><span class="line">    &#x2F;&#x2F; isa.magic is part of ISA_MAGIC_VALUE</span><br><span class="line">    &#x2F;&#x2F; isa.nonpointer is part of ISA_MAGIC_VALUE</span><br><span class="line">    newisa.has_cxx_dtor &#x3D; hasCxxDtor;</span><br><span class="line">    newisa.indexcls &#x3D; (uintptr_t)cls-&gt;classArrayIndex();</span><br><span class="line">    </span><br><span class="line">&#x2F;&#x2F; 64位走这个地方</span><br><span class="line">#else</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; 赋值bits</span><br><span class="line">    newisa.bits &#x3D; ISA_MAGIC_VALUE;</span><br><span class="line">    </span><br><span class="line">    &#x2F;&#x2F; 赋值cxx</span><br><span class="line">    newisa.has_cxx_dtor &#x3D; hasCxxDtor;</span><br><span class="line">    </span><br><span class="line">    &#x2F;&#x2F; 赋值类信息</span><br><span class="line">    newisa.shiftcls &#x3D; (uintptr_t)cls &gt;&gt; 3;</span><br><span class="line">#endif</span><br><span class="line">    </span><br><span class="line">    &#x2F;&#x2F; 赋值isa</span><br><span class="line">    isa &#x3D; newisa;</span><br><span class="line">    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<p>3.<code>SUPPORT_INDEXED_ISA</code> ：表示 <code>isa_t</code> 中存放的 <code>Class</code> 信息是 <code>Class</code> 的地址，还是一个<code>索引</code>(根据该<code>索引</code>可在<code>类信息表</code>中查找该类结构地址)。目前接触到的iOS的设备上 <code>SUPPORT_INDEXED_ISA</code> 为<code>0</code>，如下代码:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 如果不是64位</span><br><span class="line">#if __ARM_ARCH_7K__ &gt;&#x3D; 2  ||  (__arm64__ &amp;&amp; !__LP64__)</span><br><span class="line">#   define SUPPORT_INDEXED_ISA 1</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; 如果是64位</span><br><span class="line">#else</span><br><span class="line">#   define SUPPORT_INDEXED_ISA 0</span><br><span class="line">#endif</span><br></pre></td></tr></table></figure>
+
+
+<p>4.<code>isa_t</code>还提供了一个结构体定义的<code>位域</code>，用于存储类信息及其他信息，结构体的成员<code>ISA_BITFIELD</code>，这是一个宏定义，有两个<code>架构</code> <code>__arm64__（真机）</code> 和 <code>__x86_64__（macOS/模拟器）</code>，以下是它们的一些宏定义，如下图所示：</p>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/93747410-40d85700-fc29-11ea-9156-b7230e9f215e.png"></p>
+<ul>
+<li><p><code>nonpointer</code>：表示是否对 <code>isa</code> 指针<code>开启指针优化</code></p>
+<ul>
+<li><code>0</code>：如果没有<code>nonpointer</code>就是<code>纯isa指针</code></li>
+<li><code>1</code>：如果有<code>nonpointer</code>，不⽌有<code>类对象地址</code>,isa 中包含了<code>类信息</code>、对象的<code>引⽤计数</code>等</li>
+</ul>
+</li>
+<li><p><code>has_assoc</code>：<code>关联对象标志位</code></p>
+<ul>
+<li><code>0没有</code></li>
+<li><code>1存在</code></li>
+</ul>
+</li>
+<li><p><code>has_cxx_dtor</code>：该对象是否有<code>C++</code>或者<code> Objc</code> 的<code>析构器</code>,如果有析构函数,则需要做析构逻辑, 如果没有,则可以更快的释放对象</p>
+</li>
+<li><p><code>shiftcls</code>: <code>存储类指针的值</code>。开启指针优化的情况下：</p>
+<ul>
+<li>在 <code>__arm64__</code> 架构中有 <code>33</code> 位⽤来存储<code>类指针</code>。<code>dealloc</code>函数</li>
+<li>在 <code>__x86_64__</code> 架构中有 <code>44</code> 位用来存储类指针。</li>
+</ul>
+</li>
+<li><p><code>magic</code>：⽤于调试器判断当前对象是<code>真的对象</code>还是<code>没有初始化</code>的<code>空间</code></p>
+</li>
+<li><p><code>weakly_referenced</code>：指对象是否被<code>指向</code>或者<code>曾经指向</code>⼀个 <code>ARC</code> 的弱变量，</p>
+<ul>
+<li>如果<code>有</code>，则在调用<code>delloc</code>进行<code>释放</code></li>
+<li>如果<code>没有</code>，弱引⽤的对象可以<code>更快释放</code>。</li>
+</ul>
+</li>
+<li><p><code>deallocating</code>：标志对象是否<code>正在释放</code>内存</p>
+</li>
+<li><p><code>has_sidetable_rc</code>：当对象<code>引⽤计数⼤于 10 </code>时，则需要借⽤该变量<code>存储进位</code></p>
+</li>
+<li><p><code>extra_rc</code>：当表示该对象的<code>引⽤计数值</code>，实际上是引⽤计数值<code>减 1</code>，</p>
+<ul>
+<li>如果对象的引⽤计数为 <code>10</code>，那么 <code>extra_rc</code> 为 <code>9</code>。</li>
+<li>如果引⽤计数⼤于 <code>10</code>，则需要使⽤到<code>上⾯</code>的 <code>has_sidetable_rc</code>。</li>
+</ul>
+</li>
+</ul>
+<p>针对两种不同平台，其<code>isa</code>的<code>存储情况</code>如图所示：</p>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/93747391-3ae27600-fc29-11ea-85b0-3c8e25a21340.png"></p>
+<p>由上面的分析得出，大部分<code>自定义的类</code>都是属于<code>nonpointer_isa</code>，不光存储了<code>isa</code>，还存储了其他一些<code>信息</code>。</p>
+<h1 id="dealloc释放"><a href="#dealloc释放" class="headerlink" title="dealloc释放"></a>dealloc释放</h1><p>我们通过<code>dealloc释</code>查看<code>通过</code>中<code>dealloc</code>释放流程：</p>
+<p>1.<code>dealloc</code>调用<code>_objc_rootDealloc</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; Replaced by NSZombies</span><br><span class="line">- (void)dealloc &#123;</span><br><span class="line">    _objc_rootDealloc(self);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>2.<code>_objc_rootDealloc</code>调用<code>rootDealloc</code>:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">void</span><br><span class="line">_objc_rootDealloc(id obj)</span><br><span class="line">&#123;</span><br><span class="line">    ASSERT(obj);</span><br><span class="line"></span><br><span class="line">    obj-&gt;rootDealloc();</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>3.<code>rootDealloc</code>内部进行一些判断，释放<code>isa</code>相关信息：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">inline void</span><br><span class="line">objc_object::rootDealloc()</span><br><span class="line">&#123;</span><br><span class="line">    if (isTaggedPointer()) return;  &#x2F;&#x2F; fixme necessary?</span><br><span class="line">    &#x2F;&#x2F; isa有nonpointer，更快释放</span><br><span class="line">    if (fastpath(isa.nonpointer  &amp;&amp;  </span><br><span class="line">                 !isa.weakly_referenced  &amp;&amp;  </span><br><span class="line">                 !isa.has_assoc  &amp;&amp;  </span><br><span class="line">                 !isa.has_cxx_dtor  &amp;&amp;  </span><br><span class="line">                 !isa.has_sidetable_rc))</span><br><span class="line">    &#123;</span><br><span class="line">        assert(!sidetable_present());</span><br><span class="line">        free(this);</span><br><span class="line">    &#125;</span><br><span class="line">    &#x2F;&#x2F; 没有nonpointer,调用object_dispose</span><br><span class="line">    else &#123;</span><br><span class="line">        object_dispose((id)this);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>4.<code>object_dispose</code>内部调用<code>objc_destructInstance</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">id </span><br><span class="line">object_dispose(id obj)</span><br><span class="line">&#123;</span><br><span class="line">    if (!obj) return nil;</span><br><span class="line"></span><br><span class="line">    objc_destructInstance(obj);    </span><br><span class="line">    free(obj);</span><br><span class="line"></span><br><span class="line">    return nil;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>5.<code>objc_destructInstance</code>内部调用<code>clearDeallocating</code>清除</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">void *objc_destructInstance(id obj) </span><br><span class="line">&#123;</span><br><span class="line">    if (obj) &#123;</span><br><span class="line">        &#x2F;&#x2F; Read all of the flags at once for performance.</span><br><span class="line">        &#x2F;&#x2F; 是否有c++&#x2F;oc析构函数</span><br><span class="line">        bool cxx &#x3D; obj-&gt;hasCxxDtor();</span><br><span class="line">        &#x2F;&#x2F; 是否有关联对象</span><br><span class="line">        bool assoc &#x3D; obj-&gt;hasAssociatedObjects();</span><br><span class="line"></span><br><span class="line">        &#x2F;&#x2F; This order is important.</span><br><span class="line">        &#x2F;&#x2F; 析构函数</span><br><span class="line">        if (cxx) object_cxxDestruct(obj);</span><br><span class="line">        &#x2F;&#x2F; 移除关联对象</span><br><span class="line">        if (assoc) _object_remove_assocations(obj);</span><br><span class="line">        &#x2F;&#x2F; 清除</span><br><span class="line">        obj-&gt;clearDeallocating();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    return obj;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>具体细节待完善…</p>
+<h1 id="isa-和-类关联"><a href="#isa-和-类关联" class="headerlink" title="isa 和 类关联"></a>isa 和 类关联</h1><p><code>isa</code> 与 <code>cls</code> 关联原理就是<code>isa</code>指针中的<code>shiftcls</code>位域中存储了类信息，其中<code>initInstanceIsa</code>的过程是将 <code>calloc</code> 指针 和当前的 <code>类cls</code> 关联起来，有以下几种验证方式：</p>
+<ul>
+<li><p>【方式一】通过<code>initIsa</code>方法中的<code>newisa.shiftcls = (uintptr_t)cls &gt;&gt; 3</code>验证</p>
+</li>
+<li><p>【方式二】通过<code>isa指针</code>地址与<code>ISA_MSAK</code> 的值 <code>&amp;</code> 来验证</p>
+</li>
+<li><p>【方式三】通过<code>runtime</code>的方法<code>object_getClass</code>验证</p>
+</li>
+<li><p>【方式四】通过<code>位运算</code>验证</p>
+</li>
+</ul>
+<p>#【方法一】通过<code>initIsa</code>方法中的<code>newisa.shiftcls = (uintptr_t)cls &gt;&gt; 3</code>验证</p>
+<p>1.首先通过<code>main</code>中的<code>ZJPerson</code> 断点 –&gt; <code>initInstanceIsa</code> –&gt; <code>initIsa</code> –&gt; 走到<code>else</code>中的 <code>newisa.bits = ISA_MAGIC_VALUE</code>这一行:</p>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/93882232-7f960c00-fd12-11ea-863b-9e22f5da1944.png"></p>
+<p>2.通过lldb调试打印<code>p newisa</code>初始化的信息:</p>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/93882733-372b1e00-fd13-11ea-8d8d-e14f2263b78c.png"></p>
+<p>这时 <code>isa</code> 通过 <code>newisa</code> 进行了初始化，但是还未被赋值</p>
+<p>3.往下走一步，走到下一行<code>newisa.has_cxx_dtor = hasCxxDtor</code> ：</p>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/94141425-48089a80-fe9f-11ea-9269-e67c8a19b92b.png"></p>
+<p>继续断点调试，在上一行<code>newisa.bits = ISA_MAGIC_VALUE</code> 已经为 <code>isa</code> 的 <code>bits</code> 成员赋值，执行lldb命令 <code>p newisa</code>，得到的结果如下:</p>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/93885662-ffbe7080-fd16-11ea-8657-1060179cf68e.png"></p>
+<p>通过与前一个<code>newisa</code>对比我们发现，<code>isa</code>指针中有一些变化，如下图所示：</p>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/93886549-27fa9f00-fd18-11ea-9e8b-7ab57c77e1f1.png"></p>
+<ul>
+<li>赋值<code>bits</code>会对<code>cls</code>进行追加<code>0x001d800000000001</code>默认值</li>
+<li>赋值<code>bits</code> 里面的 <code>ISA_BITFIELD</code> 宏中所有的信息 <ul>
+<li><code>nonpointer = 1</code>，代表<code>是nonpointer</code></li>
+<li><code>magic = 59</code> ，为什么呢？往下看</li>
+</ul>
+</li>
+</ul>
+<p>4.打开<code>计算器</code>我们查看一下<code>16</code>进制<code>0x001d800000000001</code>转化为<code>二进制</code>，和<code>10</code>进制<code>59</code> 转化为<code>二进制</code>，进行对比一下：</p>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/93888490-a6f0d700-fd1a-11ea-9a85-960b7940af05.png"></p>
+<p>由对比可知，<code>0x001d800000000001</code>转化为<code>二进制</code> ，从 <code>47（因为前面有4个位域，共占用46位）</code> 位开始往后数6位是 <code>110111</code>； 和 <code>10</code> 进制 <code> magic = 59</code>  转换成<code>二进制</code>，从 <code>0</code> 开始 往后数 6 位的 值相等；</p>
+<p>5.继续往下执行断点到<code>newisa.shiftcls = (uintptr_t)cls &gt;&gt; 3</code>：</p>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/94139362-18a45e80-fe9c-11ea-9107-b29a29e5ed73.png"></p>
+<ul>
+<li><code>shiftcls</code>存的是<code>类的信息</code> </li>
+<li><code>cls</code> 是 <code>ZJPerson</code> 进行<code>编码</code>之后往<code>右移3位</code></li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">(lldb) p (uintptr_t)cls</span><br><span class="line">(uintptr_t) $2 &#x3D; 4294975720</span><br><span class="line">(lldb) p $2 &gt;&gt; 3</span><br><span class="line">(uintptr_t) $3 &#x3D; 536871965</span><br></pre></td></tr></table></figure>
+
+<p>6.继续往下走一到 执行断点到<code>isa = newisa</code>：</p>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/94141778-daa93980-fe9f-11ea-88c6-cf175241db39.png"></p>
+<p>我们通过<code>lldb</code>调试一下<code>newisa</code>：</p>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/93890441-eae4db80-fd1c-11ea-9253-2105c3cb2568.png"></p>
+<p>我们看到<code>cls = ZJPerson</code>，而<code>shiftcls = 536871965</code> 与 上面的 <code>$3 = 536871965</code> 刚好吻合</p>
+<p>7.最后用一张图来表示一下具体流程:</p>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/94142549-0bd63980-fea1-11ea-8b1b-dbf4e8f3a1e4.png"></p>
+<p>8.为什么在<code>shiftcls</code>赋值时需要类型强转？</p>
+<p>因为内存的存储不能存储字符串，<code>机器码</code>只能识别 <code>0 、1</code>这两种数字，所以需要将其转换为<code>uintptr_t</code>数据类型，这样<code>shiftcls</code>中存储的类信息才能被<code>机器码理解</code>， 其中<code>uintptr_t</code>是<code>long</code></p>
+<p>9.为什么需要右移3位？</p>
+<p>主要是由于<code>shiftcls</code>处于<code>isa</code>指针地址的<code>中间</code>部分，前面还有 <code>3</code> 个位域，为了不影响前面的3个位域的数据，需要<code>右移</code>将其<code>抹零</code>。</p>
+<p>#【方法二】：通过 <code>isa</code> 指针地址与 <code>ISA_MSAK</code> 的值 &amp; 来验证</p>
+<p>1.在方法一执行完后，回到<code>_class_createInstanceFromZone</code><br>中，此时 <code>isa</code> 与 <code>cls</code> 已经关联完成，我们走到下面这个方法，打上断点：</p>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/94143104-eeee3600-fea1-11ea-9ba8-938dfe11bc9b.png"></p>
+<p>2.执行 <code>po obj</code>,输出对应的值，再执行 <code>x/4gx 0x10181ba70</code> 得到<code>isa</code>指针的地址<code>0x001d8001000020e9</code>,将<code>isa</code>指针地址 <code>&amp;</code> <code>ISA_MASK</code> ，即 <code>po 0x001d8001000020e9 &amp; 0x0000000ffffffff8ULL</code> 或 <code>po 0x001d8001000020e9 &amp; 0x00007ffffffffff8ULL</code> ，得出<code>ZJPerson</code></p>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/94144541-d7b04800-fea3-11ea-955d-d08df3ea1d02.png"></p>
+<ul>
+<li><p><code>__arm64__</code>中，<code>ISA_MASK</code> 宏定义的值为<code>0x0000000ffffffff8ULL</code></p>
+</li>
+<li><p><code>__x86_64__</code>中，<code>ISA_MASK</code> 宏定义的值为<code>0x00007ffffffffff8ULL</code></p>
+</li>
+</ul>
+<p>#【方法三】：通过 <code>object_getClass</code> </p>
+<p>通过查看<code>object_getClass</code>的源码实现，同样可以验证<code>isa</code>与类关联的原理，有以下几步：</p>
+<p>1.<code>main</code>中导入<code>#import &lt;objc/runtime.h&gt;</code></p>
+<p>2.通过<code>runtime</code>的<code>api</code>，即<code>object_getClass</code>函数获取类信息</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">object_getClass(&lt;#id  _Nullable obj#&gt;)</span><br></pre></td></tr></table></figure>
+
+<p>3.查看<code>object_getClass</code>函数 源码的实现</p>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/94144862-442b4700-fea4-11ea-8456-eb0ac8ec5c22.png"></p>
+<p>4.点击进入<code>object_getClass</code> 底层实现</p>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/93893110-db1ac680-fd1f-11ea-80d9-6fb4a94546b0.png"></p>
+<p>5.点击<code>getIsa</code> 进入查看底层实现:</p>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/93893085-d35b2200-fd1f-11ea-9264-9e7757207ac4.png"></p>
+<p>6.点击 <code>ISA</code> 进入查看底层实现，可以看到如果是<code>SUPPORT_INDEXED_ISA</code>类型，执行<code>if</code>流程，反之 执行的是<code>else</code>流程，我们这里走的是<code>else</code>:</p>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/93892997-b888ad80-fd1f-11ea-800c-5eeb56a59ef9.png"></p>
+<ul>
+<li>在else流程中，拿到<code>isa</code>的<code>bits</code>这个位，再 &amp; <code>ISA_MASK</code>，这与方式二中的原理是一致的，获得当前的类信息</li>
+<li>从这里也可以得出 <code>isa</code> 与 <code>isa</code> 已经完美关联</li>
+</ul>
+<p>#【方法四】：通过位运算</p>
+<p>1.回到<code>_class_createInstanceFromZone</code>方法。通过<code>x/4gx obj</code> 得到<code>obj</code>的<code>内存分布情况</code>，当前类的信息存储在<code>isa</code>指针中，且<code>isa</code>中的<code>shiftcls</code>此时占<code>44</code>位（因为处于<code>macOS</code>环境）</p>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/94145805-ab95c680-fea5-11ea-9705-1c4842aa69c9.png"></p>
+<p>2.想要读取中间的<code>44</code>位 <code>类信息(shiftcls)</code>，就需要经过<code>位运算</code> ，将<code>右边3位</code>，和<code>左边17</code>位<code>除去</code>，<code>44位以外</code>的部分都<code>抹零</code>，其<code>相对位置是不变的</code>。其位运算过程如图所示，其中<code>shiftcls</code>即为需要读取的类信息：</p>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/94149075-05988b00-feaa-11ea-9ee8-67a09d21e33f.png"></p>
+<p>3.将isa地址右移3位：<code>p/x 0x001d8001000020e9 &gt;&gt; 3</code> ，得到<code>0x0003b0002000041d</code></p>
+<ul>
+<li><p>在将得到的<code>0x0003b0002000041d</code> 左移20位：<code>p/x 0x0003b0002000041d &lt;&lt; 20</code> ,得到<code>0x0002000041d00000</code></p>
+</li>
+<li><p>为什么是左移20位？因为先右移了3位，相当于向右偏移了3位，而左边需要抹零的位数有17位，所以一共需要移动20位</p>
+</li>
+<li><p>将得到的<code>0x0002000041d00000</code> 再右移17位：<code>p/x 0x0002000041d00000 &gt;&gt; 17</code> 得到新的<code>0x00000001000020e8</code></p>
+</li>
+<li><p>获取cls的地址 与 上面的进行验证 ：<code>p/x cls</code> 也得出<code>0x00000001000020e8</code>，所以由此可以证明 <code>isa</code> 与 <code>cls</code> 是关联的</p>
+</li>
+</ul>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/94148177-de8d8980-fea8-11ea-85fb-8fa5d802266a.png"></p>
+<p>4.为什么右移3位，左移20位，再右移17位？<br>因为<code>initIsa（初始化isa）</code>传入的是<code>cls（即ZJPerson）</code>，只有中间 <code>shiftcls</code> 才 <code>存储着类的信息</code> ，在<code>__x86_64__</code>架构是<code>44</code>位，在<code>__arm64__</code>架构是<code>33</code>位，只有在<code>33位/44位</code>才存<code>储着类信息</code>，当右移3位，左移20位，再右移17位，相当于复位，不足64位<code>系统</code>自动帮我们<code>用0补全</code>。</p>
+<h1 id="isa-返回Class类型的验证"><a href="#isa-返回Class类型的验证" class="headerlink" title="isa 返回Class类型的验证"></a>isa 返回Class类型的验证</h1><p>1.我们在前面探索了 <code>对象</code> 的 <code>本质</code> 是 <code>结构体</code>，它的第一个 <code>属性</code> 是 <code>继承</code> 自 <code>NSObject</code> 的 <code>isa</code> 是 <code>Class</code> 类型的，而后面我们通过【方法三】<code>object_getClass</code>验证 <code>isa</code> 与 <code>cls</code> 关联流程得知， <code>isa</code> 是 <code>isa_t</code> 类型的:</p>
+<p><img src= "/13718004742.github.io/img/loading.gif" data-lazy-src="https://user-images.githubusercontent.com/25925248/94153411-55c61c00-feaf-11ea-8cd1-5b98abf576c7.png"></p>
+<p>2.那么为什么我们在<code>外层</code>得到的是<code>Class</code> 的 <code>isa</code> 呢?</p>
+<p>我们其实在上面的【方法三】，已经验证了其原因，看源码<code>return (Class)(isa.bits &amp; ISA_MASK);</code>这一句代码将其<code>强转</code>为<code>Class</code>类型提供给外层使用。</p>
+</div><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:13718004742@163.com">小J</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://www.bboyzj.cn/2020/09/18/OC%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8608%EF%BC%9Aisa%E5%92%8C%E7%B1%BB%E5%85%B3%E8%81%94%E6%8E%A2%E7%B4%A2/">https://www.bboyzj.cn/2020/09/18/OC%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8608%EF%BC%9Aisa%E5%92%8C%E7%B1%BB%E5%85%B3%E8%81%94%E6%8E%A2%E7%B4%A2/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://www.bboyzj.cn" target="_blank">张建的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/13718004742.github.io/tags/iOS-OC/">iOS-OC</a></div><div class="post_share"><div class="social-share" data-image="https://user-images.githubusercontent.com/25925248/96336894-448abc80-10b5-11eb-9bbd-806faec1fa43.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i> 打赏<div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat.jpg" target="_blank"><img class="post-qr-code-img" data-lazy-src="/13718004742.github.io/img/wechat.jpg" alt="wechat"/></a><div class="post-qr-code-desc">wechat</div></li><li class="reward-item"><a href="/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" data-lazy-src="/13718004742.github.io/img/alipay.jpg" alt="alipay"/></a><div class="post-qr-code-desc">alipay</div></li></ul></div></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/13718004742.github.io/2020/09/22/iOS%EF%BC%9AGitee%E4%BD%BF%E7%94%A8%E6%8E%A2%E7%B4%A2/"><img class="prev-cover" data-lazy-src="https://user-images.githubusercontent.com/25925248/96335899-69c7fc80-10ae-11eb-9866-425e57ec8483.jpg" onerror="onerror=null;src='/13718004742.github.io/img/404.jpg'"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">Gitee使用探索</div></div></a></div><div class="next-post pull-right"><a href="/13718004742.github.io/2020/09/16/OC%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8607%EF%BC%9Amalloc%E6%BA%90%E7%A0%81%E6%8E%A2%E7%B4%A2/"><img class="next-cover" data-lazy-src="https://user-images.githubusercontent.com/25925248/89219643-b8fba680-d602-11ea-8976-cffc04f25d83.jpg" onerror="onerror=null;src='/13718004742.github.io/img/404.jpg'"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">OC底层原理07：malloc源码探索</div></div></a></div></nav><div class="relatedPosts"><div class="relatedPosts_headline"><i class="fas fa-thumbs-up fa-fw"></i><span> 相关推荐</span></div><div class="relatedPosts_list"><div class="relatedPosts_item"><a href="/13718004742.github.io/2020/07/29/OCRunloop01：Runloop底层原理/" title="OCRunloop01：Runloop底层原理"><img class="relatedPosts_cover" data-lazy-src="https://user-images.githubusercontent.com/25925248/96335899-69c7fc80-10ae-11eb-9866-425e57ec8483.jpg"><div class="relatedPosts_main is-center"><div class="relatedPosts_date"><i class="far fa-calendar-alt fa-fw"></i> 2020-07-29</div><div class="relatedPosts_title">OCRunloop01：Runloop底层原理</div></div></a></div><div class="relatedPosts_item"><a href="/13718004742.github.io/2020/08/11/OCRuntime01：runtime初探/" title="OOCRunloop02：runtime初探"><img class="relatedPosts_cover" data-lazy-src="https://user-images.githubusercontent.com/25925248/96366407-0dcaaa00-117a-11eb-98af-a4623b1a5aa6.jpg"><div class="relatedPosts_main is-center"><div class="relatedPosts_date"><i class="far fa-calendar-alt fa-fw"></i> 2020-08-11</div><div class="relatedPosts_title">OOCRunloop02：runtime初探</div></div></a></div><div class="relatedPosts_item"><a href="/13718004742.github.io/2020/07/13/OCRuntime02：对象的本质/" title="OCRuntime03：对象的本质"><img class="relatedPosts_cover" data-lazy-src="https://user-images.githubusercontent.com/25925248/89294514-33bfd280-d692-11ea-9151-7808205ed301.jpg"><div class="relatedPosts_main is-center"><div class="relatedPosts_date"><i class="far fa-calendar-alt fa-fw"></i> 2020-07-13</div><div class="relatedPosts_title">OCRuntime03：对象的本质</div></div></a></div><div class="relatedPosts_item"><a href="/13718004742.github.io/2020/07/15/OCRuntime03：方法的本质/" title="OCRuntime03：方法的本质"><img class="relatedPosts_cover" data-lazy-src="https://user-images.githubusercontent.com/25925248/96335886-5026b500-10ae-11eb-9fed-822a1fd68e13.jpg"><div class="relatedPosts_main is-center"><div class="relatedPosts_date"><i class="far fa-calendar-alt fa-fw"></i> 2020-07-15</div><div class="relatedPosts_title">OCRuntime03：方法的本质</div></div></a></div><div class="relatedPosts_item"><a href="/13718004742.github.io/2020/08/18/OCRuntime04：Runtime实际应用/" title="OCRuntime04：Runtime实际应用"><img class="relatedPosts_cover" data-lazy-src="https://user-images.githubusercontent.com/25925248/96366410-0efbd700-117a-11eb-9960-9ce2caf2802e.jpeg"><div class="relatedPosts_main is-center"><div class="relatedPosts_date"><i class="far fa-calendar-alt fa-fw"></i> 2020-08-18</div><div class="relatedPosts_title">OCRuntime04：Runtime实际应用</div></div></a></div><div class="relatedPosts_item"><a href="/13718004742.github.io/2020/08/01/OC三方框架00：三方依赖管理工具cocoapods探索/" title="OC三方框架00：三方依赖管理工具cocoapods探索"><img class="relatedPosts_cover" data-lazy-src="https://user-images.githubusercontent.com/25925248/96366400-0a372300-117a-11eb-864c-a8a1deb77082.jpg"><div class="relatedPosts_main is-center"><div class="relatedPosts_date"><i class="far fa-calendar-alt fa-fw"></i> 2020-08-01</div><div class="relatedPosts_title">OC三方框架00：三方依赖管理工具cocoapods探索</div></div></a></div></div></div></article></main><footer id="footer" style="background-image: url(https://user-images.githubusercontent.com/25925248/96336894-448abc80-10b5-11eb-9bbd-806faec1fa43.jpg)" data-type="photo"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2021 By 小J</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text"><a target="_blank" rel="noopener" href="http://www.bboyzj.top/">Hi, welcome to my blog!</a></div></div></footer></div><section id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="font_plus" type="button" title="放大字体"><i class="fas fa-plus"></i></button><button id="font_minus" type="button" title="缩小字体"><i class="fas fa-minus"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></section><div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/13718004742.github.io/js/utils.js"></script><script src="/13718004742.github.io/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module" defer></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js" async></script><script>var endLoading = function () {
+  document.body.style.overflow = 'auto';
+  document.getElementById('loading-box').classList.add("loaded")
+}
+window.addEventListener('load',endLoading)</script><div class="js-pjax"><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><script src="/13718004742.github.io/js/third-party/activate-power-mode.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = true;
+document.body.addEventListener('input', POWERMODE);
+</script><script src="/13718004742.github.io/js/third-party/click_heart.js" async="async"></script></div></body></html>

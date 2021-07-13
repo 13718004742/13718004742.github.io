@@ -1,0 +1,213 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>张建的博客 - 成功的道路上只有荆棘，没有坦途</title><meta name="description"><meta name="author" content="小J,13718004742@163.com"><meta name="copyright" content="小J"><meta name="format-detection" content="telephone=no"><link rel="shortcut icon" href="/13718004742.github.io/img/favicon.png"><link rel="canonical" href="https://www.bboyzj.cn/"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//fonts.googleapis.com" crossorigin="crossorigin"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><meta property="og:type" content="website"><meta property="og:title" content="张建的博客"><meta property="og:url" content="https://www.bboyzj.cn/"><meta property="og:site_name" content="张建的博客"><meta property="og:description"><meta property="og:image" content="https://www.bboyzj.cn/img/avatar.png"><meta property="article:published_time" content="2021-07-12T08:28:28.614Z"><meta property="article:modified_time" content="2021-07-12T08:28:28.614Z"><meta name="twitter:card" content="summary"><script>var activateDarkMode = function () {
+  document.documentElement.setAttribute('data-theme', 'dark')
+  if (document.querySelector('meta[name="theme-color"]') !== null) {
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#000')
+  }
+}
+var activateLightMode = function () {
+  document.documentElement.setAttribute('data-theme', 'light')
+  if (document.querySelector('meta[name="theme-color"]') !== null) {
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#fff')
+  }
+}
+
+var getCookies = function (name) {
+  const value = `; ${document.cookie}`
+  const parts = value.split(`; ${name}=`)
+  if (parts.length === 2) return parts.pop().split(';').shift()
+}
+
+var autoChangeMode = 'false'
+var t = getCookies('theme')
+if (autoChangeMode === '1') {
+  var isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+  var isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+  var isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+  var hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+  if (t === undefined) {
+    if (isLightMode) activateLightMode()
+    else if (isDarkMode) activateDarkMode()
+    else if (isNotSpecified || hasNoSupport) {
+      console.log('You specified no preference for a color scheme or your browser does not support it. I Schedule dark mode during night time.')
+      var now = new Date()
+      var hour = now.getHours()
+      var isNight = hour <= 6 || hour >= 18
+      isNight ? activateDarkMode() : activateLightMode()
+    }
+    window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+      if (Cookies.get('theme') === undefined) {
+        e.matches ? activateDarkMode() : activateLightMode()
+      }
+    })
+  } else if (t === 'light') activateLightMode()
+  else activateDarkMode()
+} else if (autoChangeMode === '2') {
+  now = new Date()
+  hour = now.getHours()
+  isNight = hour <= 6 || hour >= 18
+  if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+  else if (t === 'light') activateLightMode()
+  else activateDarkMode()
+} else {
+  if (t === 'dark') activateDarkMode()
+  else if (t === 'light') activateLightMode()
+}</script><link rel="stylesheet" href="/13718004742.github.io/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Titillium+Web&amp;display=swap"><script>var GLOBAL_CONFIG = { 
+  root: '/13718004742.github.io/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  bookmark: {
+    message_prev: '按',
+    message_next: '键将本页加入书签'
+  },
+  runtime_unit: '天',
+  runtime: false,
+  copyright: {"limitCount":50,"languages":{"author":"作者: 小J","link":"链接: ","source":"来源: 张建的博客","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  ClickShowText: undefined,
+  medium_zoom: false,
+  fancybox: true,
+  Snackbar: undefined,
+  justifiedGallery: {
+    js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+    css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+  },
+  baiduPush: false,
+  highlightCopy: true,
+  highlightLang: true,
+  isPhotoFigcaption: false,
+  islazyload: true,
+  isanchor: false    
+}</script><script id="config_change">var GLOBAL_CONFIG_SITE = { 
+  isPost: false,
+  isHome: true,
+  isHighlightShrink: false,
+  isSidebar: false,
+  postUpdate: '2021-07-12 16:28:28'
+}</script><noscript><style>
+#nav {
+  opacity: 1
+}
+.justified-gallery img {
+  opacity: 1
+}
+</style></noscript><meta name="generator" content="Hexo 5.0.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" data-lazy-src="/13718004742.github.io/img/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/13718004742.github.io/archives/"><div class="headline">文章</div><div class="length_num">102</div></a></div></div><div class="mobile_data_item is-center">      <div class="mobile_data_link"><a href="/13718004742.github.io/tags/"><div class="headline">标签</div><div class="length_num">5</div></a></div></div><div class="mobile_data_item is-center">     <div class="mobile_data_link"><a href="/13718004742.github.io/categories/"><div class="headline">分类</div><div class="length_num">13</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/13718004742.github.io/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 菜单</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/13718004742.github.io/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/13718004742.github.io/movies/"><i class="fa-fw fas fa fa-film"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/link/"><i class="fa-fw fa fa-users"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/messageboard/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div></div></div></div><div id="body-wrap"><div id="web_bg" data-type="photo"></div><header class="full_page" id="page-header" style="background-image: url(https://user-images.githubusercontent.com/25925248/89294764-8a2d1100-d692-11ea-901a-2f8ed8332815.jpg)"><nav id="nav"><span class="pull-left" id="blog_name"><a class="blog_title" id="site-name" href="/13718004742.github.io/">张建的博客</a></span><span class="pull-right menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/13718004742.github.io/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> 菜单</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/13718004742.github.io/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/13718004742.github.io/movies/"><i class="fa-fw fas fa fa-film"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/link/"><i class="fa-fw fa fa-users"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div><div class="menus_item"><a class="site-page" href="/13718004742.github.io/messageboard/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div></div><span class="toggle-menu close"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></span></span></nav><div id="site-info"><h1 id="site_title">张建的博客</h1><div id="site_subtitle"><span id="subtitle"></span></div><div id="site_social_icons"><a class="social-icon" href="https://github.com/13718004742" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="/13718004742.github.io/13718004742@163.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div id="scroll_down"><i class="fas fa-angle-down scroll-down-effects"></i></div></header><main class="layout_page" id="content-inner"><div class="recent-posts" id="recent-posts"><div class="recent-post-item"><div class="post_cover left_radius"><a href="/13718004742.github.io/2021/06/07/OC%EF%BC%9AiOS%E4%B9%8BTestFlight%E7%9A%84%E6%8E%A2%E7%B4%A2/" title="OC：iOS之TestFlight的探索">     <img class="post_bg" data-lazy-src="https://user-images.githubusercontent.com/25925248/96366406-0d321380-117a-11eb-941d-a4667dc2f89c.jpg" onerror="this.onerror=null;this.src='/13718004742.github.io/img/404.jpg'" alt="OC：iOS之TestFlight的探索"></a></div><div class="recent-post-info"><a class="article-title" href="/13718004742.github.io/2021/06/07/OC%EF%BC%9AiOS%E4%B9%8BTestFlight%E7%9A%84%E6%8E%A2%E7%B4%A2/" title="OC：iOS之TestFlight的探索">OC：iOS之TestFlight的探索</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-06-07T08:47:54.000Z" title="发表于 2021-06-07 16:47:54">2021-06-07</time></span><span class="article-meta"><span class="article-meta__separator">|</span><i class="fas fa-inbox article-meta__icon"></i><a class="article-meta__categories" href="/13718004742.github.io/categories/OC/">OC</a></span></div><div class="content">前言TestFlight是苹果官方提供给开发者 测试Beta版APP 的应用。
+开发者可以通过 发送邮件 或 公开链接 的方式邀请你参与测试应用。
+Xcode构建APP测试版本1.通过 Product -&gt; Archive 构建App Store版本，构建成功后，如下图：
+
+2.点击 Distribute App 发布APP 到 App Store，此步骤不再赘述，最后得到的如下图：
+
+TestFlight 填写信息1.填写测试信息，如下图所示:
+
+2.添加外部群组测试员，如下图:
+
+如上图的公开链接，即是可以在 TestFlight 上下载 并测试的 beta版本APP
+</div></div></div><div class="recent-post-item"><div class="post_cover right_radius"><a href="/13718004742.github.io/2021/06/02/OC%EF%BC%9A%E7%BC%BA%E5%B0%91%E5%87%BA%E5%8F%A3%E5%90%88%E8%A7%84%E8%AF%81%E6%98%8E%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%B3%95/" title="OC：缺少出口合规证明的解决方法">     <img class="post_bg" data-lazy-src="https://user-images.githubusercontent.com/25925248/96335951-bad7f080-10ae-11eb-8bc1-26a376044ad3.jpg" onerror="this.onerror=null;this.src='/13718004742.github.io/img/404.jpg'" alt="OC：缺少出口合规证明的解决方法"></a></div><div class="recent-post-info"><a class="article-title" href="/13718004742.github.io/2021/06/02/OC%EF%BC%9A%E7%BC%BA%E5%B0%91%E5%87%BA%E5%8F%A3%E5%90%88%E8%A7%84%E8%AF%81%E6%98%8E%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%B3%95/" title="OC：缺少出口合规证明的解决方法">OC：缺少出口合规证明的解决方法</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-06-02T07:36:05.000Z" title="发表于 2021-06-02 15:36:05">2021-06-02</time></span></div><div class="content"></div></div></div><div class="recent-post-item"><div class="post_cover left_radius"><a href="/13718004742.github.io/2021/04/29/OC%EF%BC%9AiOS%E7%AB%AF-bugly%E4%B8%8A%E4%BC%A0%E7%AC%A6%E5%8F%B7%E8%A1%A8/" title="OC：iOS端 bugly上传符号表">     <img class="post_bg" data-lazy-src="https://user-images.githubusercontent.com/25925248/96335831-ed351e00-10ad-11eb-815d-7f5dbaa24b38.jpg" onerror="this.onerror=null;this.src='/13718004742.github.io/img/404.jpg'" alt="OC：iOS端 bugly上传符号表"></a></div><div class="recent-post-info"><a class="article-title" href="/13718004742.github.io/2021/04/29/OC%EF%BC%9AiOS%E7%AB%AF-bugly%E4%B8%8A%E4%BC%A0%E7%AC%A6%E5%8F%B7%E8%A1%A8/" title="OC：iOS端 bugly上传符号表">OC：iOS端 bugly上传符号表</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-04-29T05:24:38.000Z" title="发表于 2021-04-29 13:24:38">2021-04-29</time></span><span class="article-meta"><span class="article-meta__separator">|</span><i class="fas fa-inbox article-meta__icon"></i><a class="article-meta__categories" href="/13718004742.github.io/categories/OC/">OC</a></span></div><div class="content">前言Bugly 上传符号表有两种方式，分别是自动配置、手动配置（自动配置编译的比较慢，建议手动配置）
+手动配置1、安装java运行环境
+到 Java官网 下载 jdk，如下图：
+
+下载完成之后打开dmg，安装、一路下一步即可安装成功。
+在终端输入 java -version 可以查看 java 版本，如果输入如下信息，则表示安装成功：
+1234zhangjian@zhangjiandeMBP ~ % java -versionjava version &quot;1.8.0_291&quot;Java(TM) SE Runtime Environment (build 1.8.0_291-b10)Java HotSpot(TM) 64-Bit Server VM (build 25.291-b10, mixed mode)
+
+2、获取dSYM文件
+dSYM文件：是指具有调试信息的目标文件
+获取方式： 不管是 debug环境 还是 release环境，在 archive 后，如下操作：
+
+再次 点击右键 打开包内容如下：
+
+
+最后，在桌面或者任意位置，新建一个文件夹如 appdsym文件 ...</div></div></div><div class="recent-post-item"><div class="post_cover right_radius"><a href="/13718004742.github.io/2021/04/26/OC%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8627%EF%BC%9A%E5%90%AF%E5%8A%A8%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86%E6%8E%A2%E7%B4%A2/" title="OC底层原理27：启动优化原理探索">     <img class="post_bg" data-lazy-src="https://user-images.githubusercontent.com/25925248/96366404-0c00e680-117a-11eb-8537-da55459381bc.jpg" onerror="this.onerror=null;this.src='/13718004742.github.io/img/404.jpg'" alt="OC底层原理27：启动优化原理探索"></a></div><div class="recent-post-info"><a class="article-title" href="/13718004742.github.io/2021/04/26/OC%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8627%EF%BC%9A%E5%90%AF%E5%8A%A8%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86%E6%8E%A2%E7%B4%A2/" title="OC底层原理27：启动优化原理探索">OC底层原理27：启动优化原理探索</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-04-26T06:59:47.000Z" title="发表于 2021-04-26 14:59:47">2021-04-26</time></span></div><div class="content">冷启动和热启动启动的过程一般是指 从用户点击APP图标 到 进入到APP页面 的过程，一般在iOS开发中分为 冷启动 和 热启动
+
+热启动：用户在使用APP过程中，按下 Home键，APP不会立即被kill掉，而是存活一段时间，这段时间里用户再打开APP，此时APP还在退到后台前的状态，APP进程还在系统中，无需开启新的进程，APP也不会重新加载数据到内存中的过程。
+
+冷启动：用户将 设备重启 或者是 手动kill掉APP进程，又或者是 APP长时间未打开过，当用户点击启动APP图标的过程，这时需要创建一个新的进程分配给APP，并且内存中不包含任何数据，必须从磁盘中载入数据到内存中的过程。
+
+
+启动优化概念WWDC 2016 中首次出现了APP启动优化的话题，其中提到：
+
+App启动最佳速度是400ms以内 ，因为从点击App图标启动，然后Launch Screen 出现再消失的时间就是400ms。
+App启动最慢不得大于20s ，否则进程会被系统杀死
+
+我们这里所说的启动优化，一般是指 冷启动 情况下的启动优化，是指用户唤起App开始到AppDelegate 中的 didFinish ...</div></div></div><div class="recent-post-item"><div class="post_cover left_radius"><a href="/13718004742.github.io/2021/04/02/OC%EF%BC%9A%E5%8D%87%E7%BA%A7cocoapods%E6%8E%A2%E7%B4%A2/" title="OC：升级cocoapods探索">     <img class="post_bg" data-lazy-src="https://user-images.githubusercontent.com/25925248/89294514-33bfd280-d692-11ea-9151-7808205ed301.jpg" onerror="this.onerror=null;this.src='/13718004742.github.io/img/404.jpg'" alt="OC：升级cocoapods探索"></a></div><div class="recent-post-info"><a class="article-title" href="/13718004742.github.io/2021/04/02/OC%EF%BC%9A%E5%8D%87%E7%BA%A7cocoapods%E6%8E%A2%E7%B4%A2/" title="OC：升级cocoapods探索">OC：升级cocoapods探索</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-04-02T03:34:54.000Z" title="发表于 2021-04-02 11:34:54">2021-04-02</time></span><span class="article-meta"><span class="article-meta__separator">|</span><i class="fas fa-inbox article-meta__icon"></i><a class="article-meta__categories" href="/13718004742.github.io/categories/OC/">OC</a></span></div><div class="content">一、前言作为一名资深的iOS开发者，如果我们在用 终端 pod search UdeskSDK 某一SDK时，发现搜索不到最新版本的SDK，那么说明明你的pod版本过低了，此时就需要我们去升级一下pod。
+二、升级ruby1、查看自己的ruby版本
+ruby –version
+mac@MacdeMBP ~ % ruby --version    ruby 2.6.3p62 (2019-04-16 revision 67580) [universal.x86_64-darwin19]
+2、我是用brew更新ruby的，因此需要更新一下brew，输入以下命令：
+brew update
+3、更新ruby 
+brew install ruby
+4、配置环境变量
+如果你更新完，ruby -v 查看还是原来的版本，是因为没有配置环境变量，此时你需要执行如下两个命令：
+echo &#39;export PATH=&quot;/usr/local/opt/ruby/bin:$PATH&quot;&#39; &gt;&gt; ~/.bash_profile
+source ~/.bash_profile
+ ...</div></div></div><div class="recent-post-item"><div class="post_cover right_radius"><a href="/13718004742.github.io/2021/03/24/OC%EF%BC%9ASVN%E5%B7%A5%E5%85%B7-Cornerstone-%E6%8E%A2%E7%B4%A2/" title="OC：SVN工具 Cornerstone 探索 ">     <img class="post_bg" data-lazy-src="https://user-images.githubusercontent.com/25925248/96335899-69c7fc80-10ae-11eb-9866-425e57ec8483.jpg" onerror="this.onerror=null;this.src='/13718004742.github.io/img/404.jpg'" alt="OC：SVN工具 Cornerstone 探索 "></a></div><div class="recent-post-info"><a class="article-title" href="/13718004742.github.io/2021/03/24/OC%EF%BC%9ASVN%E5%B7%A5%E5%85%B7-Cornerstone-%E6%8E%A2%E7%B4%A2/" title="OC：SVN工具 Cornerstone 探索 ">OC：SVN工具 Cornerstone 探索 </a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-03-24T03:41:09.000Z" title="发表于 2021-03-24 11:41:09">2021-03-24</time></span><span class="article-meta"><span class="article-meta__separator">|</span><i class="fas fa-inbox article-meta__icon"></i><a class="article-meta__categories" href="/13718004742.github.io/categories/OC/">OC</a></span></div><div class="content">一、前言SVN 是 subVersion 的缩写，是一个开放源代码的版本控制系统，通常被我们用于 多人 共同开发 同一个项目，实现资源共享，实现 集中式 的管理。
+二、Cornerstone 使用1、添加仓库（Add Repository）
+打开 Cornerstone -&gt; Add Repository ，选择 HTTP Server，并填写 SVN 信息如下：
+
+2、添加好仓库后，如下图：
+
+3、添加仓库成功后，进入主界面选择 import 导入自己的工程，上传到 SVN服务器。
+4、Checkout out 将服务器上的文件 checkout 到本地,checkout out 实际作用就是将本地文件 和 服务器文件进行关联。
+5、每次改动完成提交 Commit  就可以了，注意，在提交 Commit 之前，一定要先更新 Update 下。
+</div></div></div><div class="recent-post-item"><div class="post_cover left_radius"><a href="/13718004742.github.io/2021/03/24/OC%EF%BC%9ACode-Snippets%E4%BB%A3%E7%A0%81%E6%AE%B5%E6%8E%A2%E7%B4%A2/" title="OC：Code Snippets代码段探索">     <img class="post_bg" data-lazy-src="https://user-images.githubusercontent.com/25925248/96336894-448abc80-10b5-11eb-9bbd-806faec1fa43.jpg" onerror="this.onerror=null;this.src='/13718004742.github.io/img/404.jpg'" alt="OC：Code Snippets代码段探索"></a></div><div class="recent-post-info"><a class="article-title" href="/13718004742.github.io/2021/03/24/OC%EF%BC%9ACode-Snippets%E4%BB%A3%E7%A0%81%E6%AE%B5%E6%8E%A2%E7%B4%A2/" title="OC：Code Snippets代码段探索">OC：Code Snippets代码段探索</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-03-24T02:36:11.000Z" title="发表于 2021-03-24 10:36:11">2021-03-24</time></span><span class="article-meta"><span class="article-meta__separator">|</span><i class="fas fa-inbox article-meta__icon"></i><a class="article-meta__categories" href="/13718004742.github.io/categories/OC/">OC</a></span></div><div class="content">一、前言代码段在编程中可以让我们少打重复的代码，有一定的编程经验之后可以借助它来提高编程效率，所以这里就提供一下我在实际编程中经常用到的代码段。
+二、什么是代码段代码段就是你事先写好的代码保存到 IED 中，在编程的时候输入快捷命令直接拿出来用，下面我用 tableViewCell 来举个列子：
+在你自定义的 cell.m 文件下输入 cellWithTableView ，则立即会出现如下图提示：
+
+敲回车，你会发现你编辑的 code snippets 立即会贴出来放到 下面：
+1234567891011121314151617181920212223242526272829+ (instancetype)cellWithCollectionView:(UICollectionView *)collectionView IndexPath:(NSIndexPath *)indexPath&#123;    static NSString * identifier &#x3D; @&quot;SF_FindExpertBookDan_Collection_CellId&quot;;    ...</div></div></div><div class="recent-post-item"><div class="post_cover right_radius"><a href="/13718004742.github.io/2021/01/07/Blog%EF%BC%9A%E8%A7%A3%E5%86%B3github%E5%9B%BE%E7%89%87%E4%B8%8D%E6%98%BE%E7%A4%BA%E7%9A%84%E9%97%AE%E9%A2%98%EF%BC%88Mac%E7%89%88%EF%BC%89/" title="Blog：解决github图片不显示的问题（Mac版）">     <img class="post_bg" data-lazy-src="https://user-images.githubusercontent.com/25925248/89294514-33bfd280-d692-11ea-9151-7808205ed301.jpg" onerror="this.onerror=null;this.src='/13718004742.github.io/img/404.jpg'" alt="Blog：解决github图片不显示的问题（Mac版）"></a></div><div class="recent-post-info"><a class="article-title" href="/13718004742.github.io/2021/01/07/Blog%EF%BC%9A%E8%A7%A3%E5%86%B3github%E5%9B%BE%E7%89%87%E4%B8%8D%E6%98%BE%E7%A4%BA%E7%9A%84%E9%97%AE%E9%A2%98%EF%BC%88Mac%E7%89%88%EF%BC%89/" title="Blog：解决github图片不显示的问题（Mac版）">Blog：解决github图片不显示的问题（Mac版）</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-01-07T03:04:53.000Z" title="发表于 2021-01-07 11:04:53">2021-01-07</time></span><span class="article-meta"><span class="article-meta__separator">|</span><i class="fas fa-inbox article-meta__icon"></i><a class="article-meta__categories" href="/13718004742.github.io/categories/%E5%8D%9A%E5%AE%A2/">博客</a></span></div><div class="content">简述如果你发现你github上传的图片均无法显示，则 右键-&gt;检查元素-&gt;找到这张图片的域名并复制 
+域名：user-images.githubusercontent.com
+到IPAddress.com网站打开IPAddress.com这个网站，将上面的域名复制进去，得到如下图所示的IP Address：
+
+修改hosts1、前往终端，输入如下命令：
+1mac@MacdeMBP ~ % sudo vi &#x2F;etc&#x2F;hosts
+
+2、添加如下内容：
+12# github img is not show199.232.96.133 user-images.githubusercontent.com
+
+3、如图所示，我只添加了一个，重新打开自己的GitHub，发现图片正常显示了
+
+</div></div></div><div class="recent-post-item"><div class="post_cover left_radius"><a href="/13718004742.github.io/2020/10/05/OC%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8615%EF%BC%9Adyld%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" title="OC底层原理15：dyld源码分析">     <img class="post_bg" data-lazy-src="https://user-images.githubusercontent.com/25925248/89222506-be0f2480-d607-11ea-823f-aed914e3b27e.jpg" onerror="this.onerror=null;this.src='/13718004742.github.io/img/404.jpg'" alt="OC底层原理15：dyld源码分析"></a></div><div class="recent-post-info"><a class="article-title" href="/13718004742.github.io/2020/10/05/OC%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8615%EF%BC%9Adyld%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" title="OC底层原理15：dyld源码分析">OC底层原理15：dyld源码分析</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2020-10-05T13:02:58.000Z" title="发表于 2020-10-05 21:02:58">2020-10-05</time></span><span class="article-meta"><span class="article-meta__separator">|</span><i class="fas fa-inbox article-meta__icon"></i><a class="article-meta__categories" href="/13718004742.github.io/categories/OC-%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86%E6%8E%A2%E7%B4%A2%E7%AF%87/">OC-底层原理探索篇</a></span></div><div class="content">第一步：设置运行环境。第二步：加载共享缓存。第三步：实例化主程序。第四步：加载插入的动态库。第五步：链接主程序。第六步：链接插入的动态库。第七步：执行弱符号绑定第八步：执行初始化方法。第九步：查找入口点并返回。
+</div></div></div><div class="recent-post-item"><div class="post_cover right_radius"><a href="/13718004742.github.io/2020/10/01/OC%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8614%EF%BC%9A%E6%96%B9%E6%B3%95%E6%9F%A5%E6%89%BE%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/" title="OC底层原理14：objc_msgSend流程分析之慢速查找">     <img class="post_bg" data-lazy-src="https://user-images.githubusercontent.com/25925248/96336894-448abc80-10b5-11eb-9bbd-806faec1fa43.jpg" onerror="this.onerror=null;this.src='/13718004742.github.io/img/404.jpg'" alt="OC底层原理14：objc_msgSend流程分析之慢速查找"></a></div><div class="recent-post-info"><a class="article-title" href="/13718004742.github.io/2020/10/01/OC%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8614%EF%BC%9A%E6%96%B9%E6%B3%95%E6%9F%A5%E6%89%BE%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/" title="OC底层原理14：objc_msgSend流程分析之慢速查找">OC底层原理14：objc_msgSend流程分析之慢速查找</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2020-10-01T14:00:30.000Z" title="发表于 2020-10-01 22:00:30">2020-10-01</time></span><span class="article-meta"><span class="article-meta__separator">|</span><i class="fas fa-inbox article-meta__icon"></i><a class="article-meta__categories" href="/13718004742.github.io/categories/OC-%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86%E6%8E%A2%E7%B4%A2%E7%AF%87/">OC-底层原理探索篇</a></span></div><div class="content">本文主要介绍 方法的组成 和 方法的查找流程
+</div></div></div><nav id="pagination"><div class="pagination"><span class="page-number current">1</span><a class="page-number" href="/13718004742.github.io/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/13718004742.github.io/page/11/">11</a><a class="extend next" rel="next" href="/13718004742.github.io/page/2/"><i class="fas fa-chevron-right fa-fw"></i></a></div></nav></div><div class="aside_content" id="aside_content"><div class="card-widget card-info"><div class="card-content"><div class="card-info-avatar is-center"><img class="avatar-img" data-lazy-src="/13718004742.github.io/img/avatar.png" onerror="this.onerror=null;this.src='/13718004742.github.io/img/friend_404.gif'" alt="avatar"/><div class="author-info__name">小J</div><div class="author-info__description"></div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/13718004742.github.io/archives"><div class="headline">文章</div><div class="length_num">102</div></a></div><div class="card-info-data-item is-center">      <a href="/13718004742.github.io/tags"><div class="headline">标签</div><div class="length_num">5</div></a></div><div class="card-info-data-item is-center"><a href="/13718004742.github.io/categories"><div class="headline">分类</div><div class="length_num">13</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/13718004742" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="/13718004742.github.io/13718004742@163.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div></div><div class="card-widget card-announcement"><div class="card-content"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div></div><div class="card-widget card-recent-post"><div class="card-content"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-recent-item"><div class="aside-recent-post"><a class="aside-post-cover" href="/13718004742.github.io/2021/06/07/OC%EF%BC%9AiOS%E4%B9%8BTestFlight%E7%9A%84%E6%8E%A2%E7%B4%A2/" title="OC：iOS之TestFlight的探索"><img class="aside-post-bg" data-lazy-src="https://user-images.githubusercontent.com/25925248/96366406-0d321380-117a-11eb-941d-a4667dc2f89c.jpg" onerror="this.onerror=null;this.src='/13718004742.github.io/img/404.jpg'" alt="OC：iOS之TestFlight的探索"/></a><div class="aside-post-info"><a class="aside-post-title" href="/13718004742.github.io/2021/06/07/OC%EF%BC%9AiOS%E4%B9%8BTestFlight%E7%9A%84%E6%8E%A2%E7%B4%A2/" title="OC：iOS之TestFlight的探索">OC：iOS之TestFlight的探索</a><time class="aside-post_meta post-meta-date" datetime="2021-06-07T08:47:54.000Z" title="发表于 2021-06-07 16:47:54">2021-06-07</time></div></div><div class="aside-recent-post"><a class="aside-post-cover" href="/13718004742.github.io/2021/06/02/OC%EF%BC%9A%E7%BC%BA%E5%B0%91%E5%87%BA%E5%8F%A3%E5%90%88%E8%A7%84%E8%AF%81%E6%98%8E%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%B3%95/" title="OC：缺少出口合规证明的解决方法"><img class="aside-post-bg" data-lazy-src="https://user-images.githubusercontent.com/25925248/96335951-bad7f080-10ae-11eb-8bc1-26a376044ad3.jpg" onerror="this.onerror=null;this.src='/13718004742.github.io/img/404.jpg'" alt="OC：缺少出口合规证明的解决方法"/></a><div class="aside-post-info"><a class="aside-post-title" href="/13718004742.github.io/2021/06/02/OC%EF%BC%9A%E7%BC%BA%E5%B0%91%E5%87%BA%E5%8F%A3%E5%90%88%E8%A7%84%E8%AF%81%E6%98%8E%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%B3%95/" title="OC：缺少出口合规证明的解决方法">OC：缺少出口合规证明的解决方法</a><time class="aside-post_meta post-meta-date" datetime="2021-06-02T07:36:05.000Z" title="发表于 2021-06-02 15:36:05">2021-06-02</time></div></div><div class="aside-recent-post"><a class="aside-post-cover" href="/13718004742.github.io/2021/04/29/OC%EF%BC%9AiOS%E7%AB%AF-bugly%E4%B8%8A%E4%BC%A0%E7%AC%A6%E5%8F%B7%E8%A1%A8/" title="OC：iOS端 bugly上传符号表"><img class="aside-post-bg" data-lazy-src="https://user-images.githubusercontent.com/25925248/96335831-ed351e00-10ad-11eb-815d-7f5dbaa24b38.jpg" onerror="this.onerror=null;this.src='/13718004742.github.io/img/404.jpg'" alt="OC：iOS端 bugly上传符号表"/></a><div class="aside-post-info"><a class="aside-post-title" href="/13718004742.github.io/2021/04/29/OC%EF%BC%9AiOS%E7%AB%AF-bugly%E4%B8%8A%E4%BC%A0%E7%AC%A6%E5%8F%B7%E8%A1%A8/" title="OC：iOS端 bugly上传符号表">OC：iOS端 bugly上传符号表</a><time class="aside-post_meta post-meta-date" datetime="2021-04-29T05:24:38.000Z" title="发表于 2021-04-29 13:24:38">2021-04-29</time></div></div><div class="aside-recent-post"><a class="aside-post-cover" href="/13718004742.github.io/2021/04/26/OC%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8627%EF%BC%9A%E5%90%AF%E5%8A%A8%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86%E6%8E%A2%E7%B4%A2/" title="OC底层原理27：启动优化原理探索"><img class="aside-post-bg" data-lazy-src="https://user-images.githubusercontent.com/25925248/96366404-0c00e680-117a-11eb-8537-da55459381bc.jpg" onerror="this.onerror=null;this.src='/13718004742.github.io/img/404.jpg'" alt="OC底层原理27：启动优化原理探索"/></a><div class="aside-post-info"><a class="aside-post-title" href="/13718004742.github.io/2021/04/26/OC%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8627%EF%BC%9A%E5%90%AF%E5%8A%A8%E4%BC%98%E5%8C%96%E5%8E%9F%E7%90%86%E6%8E%A2%E7%B4%A2/" title="OC底层原理27：启动优化原理探索">OC底层原理27：启动优化原理探索</a><time class="aside-post_meta post-meta-date" datetime="2021-04-26T06:59:47.000Z" title="发表于 2021-04-26 14:59:47">2021-04-26</time></div></div><div class="aside-recent-post"><a class="aside-post-cover" href="/13718004742.github.io/2021/04/02/OC%EF%BC%9A%E5%8D%87%E7%BA%A7cocoapods%E6%8E%A2%E7%B4%A2/" title="OC：升级cocoapods探索"><img class="aside-post-bg" data-lazy-src="https://user-images.githubusercontent.com/25925248/89294514-33bfd280-d692-11ea-9151-7808205ed301.jpg" onerror="this.onerror=null;this.src='/13718004742.github.io/img/404.jpg'" alt="OC：升级cocoapods探索"/></a><div class="aside-post-info"><a class="aside-post-title" href="/13718004742.github.io/2021/04/02/OC%EF%BC%9A%E5%8D%87%E7%BA%A7cocoapods%E6%8E%A2%E7%B4%A2/" title="OC：升级cocoapods探索">OC：升级cocoapods探索</a><time class="aside-post_meta post-meta-date" datetime="2021-04-02T03:34:54.000Z" title="发表于 2021-04-02 11:34:54">2021-04-02</time></div></div></div></div></div><div class="card-widget card-categories"><div class="card-content"><div class="item-headline"><i class="fas fa-folder-open"></i><span>分类</span></div><ul class="card-category-list">
+            <li class="card-category-list-item "><a class="card-category-list-link" href="/13718004742.github.io/categories/Mac/"><span class="card-category-list-name">Mac</span><span class="card-category-list-count">3</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/13718004742.github.io/categories/OC/"><span class="card-category-list-name">OC</span><span class="card-category-list-count">43</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/13718004742.github.io/categories/OC-Runloop%E6%8E%A2%E7%B4%A2%E7%AF%87/"><span class="card-category-list-name">OC-Runloop探索篇</span><span class="card-category-list-count">5</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/13718004742.github.io/categories/OC-%E4%B8%89%E6%96%B9%E6%A1%86%E6%9E%B6%E6%8E%A2%E7%B4%A2%E7%AF%87/"><span class="card-category-list-name">OC-三方框架探索篇</span><span class="card-category-list-count">6</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/13718004742.github.io/categories/OC-%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86%E6%8E%A2%E7%B4%A2%E7%AF%87/"><span class="card-category-list-name">OC-底层原理探索篇</span><span class="card-category-list-count">18</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/13718004742.github.io/categories/OC-%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E6%8E%A2%E7%B4%A2%E7%AF%87/"><span class="card-category-list-name">OC-性能优化探索篇</span><span class="card-category-list-count">5</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/13718004742.github.io/categories/OC-%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E6%8E%A2%E7%B4%A2%E7%AF%87/"><span class="card-category-list-name">OC-数据结构探索篇</span><span class="card-category-list-count">2</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/13718004742.github.io/categories/OC-%E7%AE%97%E6%B3%95%E6%8E%A2%E7%B4%A2%E7%AF%87/"><span class="card-category-list-name">OC-算法探索篇</span><span class="card-category-list-count">5</span></a></li>
+            <li class="card-category-list-item more is-center"><a class="card-category-list-link-more" href="/13718004742.github.io/categories">
+                <span>查看更多</span><i class="fas fa-angle-right"></i></a></li>           
+            </ul></div></div><div class="card-widget card-tags"><div class="card-content"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/13718004742.github.io/tags/Blog/" style="font-size: 18px; color: #999ea6">Blog</a> <a href="/13718004742.github.io/tags/Mac/" style="font-size: 16px; color: #999">Mac</a> <a href="/13718004742.github.io/tags/iOS/" style="font-size: 22px; color: #99a9bf">iOS</a> <a href="/13718004742.github.io/tags/iOS-OC/" style="font-size: 20px; color: #99a4b2">iOS-OC</a> <a href="/13718004742.github.io/tags/iOS-Swift/" style="font-size: 16px; color: #999">iOS-Swift</a></div></div></div><div class="card-widget card-archives"><div class="card-content"><div class="item-headline"><i class="fas fa-archive"></i><span>归档</span></div><ul class="card-archive-list"><li class="card-archive-list-item"><a class="card-archive-list-link" href="/13718004742.github.io/archives/2021/06/"><span class="card-archive-list-date">六月 2021</span><span class="card-archive-list-count">2</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/13718004742.github.io/archives/2021/04/"><span class="card-archive-list-date">四月 2021</span><span class="card-archive-list-count">3</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/13718004742.github.io/archives/2021/03/"><span class="card-archive-list-date">三月 2021</span><span class="card-archive-list-count">2</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/13718004742.github.io/archives/2021/01/"><span class="card-archive-list-date">一月 2021</span><span class="card-archive-list-count">1</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/13718004742.github.io/archives/2020/10/"><span class="card-archive-list-date">十月 2020</span><span class="card-archive-list-count">2</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/13718004742.github.io/archives/2020/09/"><span class="card-archive-list-date">九月 2020</span><span class="card-archive-list-count">28</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/13718004742.github.io/archives/2020/08/"><span class="card-archive-list-date">八月 2020</span><span class="card-archive-list-count">43</span></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/13718004742.github.io/archives/2020/07/"><span class="card-archive-list-date">七月 2020</span><span class="card-archive-list-count">21</span></a></li></ul></div></div><div class="card-widget card-webinfo"><div class="card-content"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站资讯</span></div><div class="webinfo"><div class="webinfo-item"><div class="webinfo-article-name">文章数目 :</div><div class="webinfo-article-count">102</div></div><div class="webinfo-item"><div class="webinfo-site-wordcount-name">本站总字数 :</div><div class="webinfo-site-wordcount">170.7k</div></div><div class="webinfo-item">      <div class="webinfo-site-uv-name">本站访客数 :</div><div class="webinfo-site-uv-count" id="busuanzi_value_site_uv"></div></div><div class="webinfo-item"><div class="webinfo-site-name">本站总访问量 :</div><div class="webinfo-site-pv-count" id="busuanzi_value_site_pv"></div></div></div></div></div></div></main><footer id="footer" style="background-image: url(https://user-images.githubusercontent.com/25925248/89294764-8a2d1100-d692-11ea-901a-2f8ed8332815.jpg)" data-type="photo"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2021 By 小J</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text"><a target="_blank" rel="noopener" href="http://www.bboyzj.top/">Hi, welcome to my blog!</a></div></div></footer></div><section id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></section><div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/13718004742.github.io/js/utils.js"></script><script src="/13718004742.github.io/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module" defer></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js" async></script><script>var endLoading = function () {
+  document.body.style.overflow = 'auto';
+  document.getElementById('loading-box').classList.add("loaded")
+}
+window.addEventListener('load',endLoading)</script><div class="js-pjax"><script>function subtitleType () {
+  $.getJSON('https://api.btstu.cn/yan/api.php?charset=utf-8&encode=json',function (data) {
+    if (true) {
+      var sub = "".length == 0 ? new Array() : "".split(',')
+      var both = sub.unshift(data.text)
+      typed = new Typed('#subtitle', {
+        strings: sub,
+        startDelay: 300,
+        typeSpeed: 150,
+        loop: true,
+        backSpeed: 50,
+      })
+    } else {
+      document.getElementById('subtitle').innerHTML = data.text
+    }
+  })
+}
+
+if (true) {
+  if (typeof Typed === 'function') subtitleType()
+  else $.getScript('https://cdn.jsdelivr.net/npm/typed.js/lib/typed.min.js', subtitleType)
+} else {
+  subtitleType()
+}
+</script><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><script src="/13718004742.github.io/js/third-party/activate-power-mode.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = true;
+document.body.addEventListener('input', POWERMODE);
+</script><script src="/13718004742.github.io/js/third-party/click_heart.js" async="async"></script></div></body></html>
